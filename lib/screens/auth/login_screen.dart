@@ -1,61 +1,61 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:app/services/auth_service.dart';
 import 'package:app/screens/auth/register_screen.dart';
-import 'package:app/screens/guest_home_screen.dart'; // Add this import
+import 'package:app/screens/guest_home_screen.dart';
 import 'package:app/utils/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app/screens/auth/pin_authentication_screen.dart';
 import 'package:app/screens/auth/admin_panel_screen.dart';
-import '../home_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
+// Stateful is leye use kiya kuon k loading aur password visibility handle karni hai updation honi hha na
+
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _userEmail = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false;
-  bool _obscurePassword = true;
+  bool _isLoading = false; //Login button pe spinner dikhane k leye
+  bool _obscurePassword = true; // Password initially hide karne k leye
 
   @override
   void dispose() {
-    _emailController.dispose();
+    // Controllers free karne k leye dispose
+    _userEmail.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   // login_screen.dart me _login function update karein
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+    if (!_formKey.currentState!.validate()) return; // Form valid hai ya nahi check kar rahe
 
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = true); // Spinner
 
     try {
-      // Sign in with Firebase
+      // Firebase se login karna
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
+        email: _userEmail.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       final userId = userCredential.user!.uid;
 
-      // Get user data from Firestore
+      // Firestore se user ki  details le lo
       final userDoc = await FirebaseFirestore.instance
           .collection('users')
           .doc(userId)
           .get();
 
       if (!userDoc.exists) {
-        await FirebaseAuth.instance.signOut();
+        await FirebaseAuth.instance.signOut(); // Agar user doc ni mila to logout
         throw Exception('User data not found');
       }
 
@@ -69,16 +69,16 @@ class _LoginScreenState extends State<LoginScreen> {
         'lastLogin': FieldValue.serverTimestamp(),
       });
 
-      // Check user type and status
+      // user Type or approval check kar k navigate karo
       if (userType == 'admin') {
-        // Admin - Navigate to Admin Panel
+        // Admin ---->    Navigate to Admin Panel
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(builder: (context) => const AdminPanelScreen()),
               (route) => false,
         );
       } else if (!isApproved || status != 'approved') {
-        // Normal user not approved - Show pending screen
+        // Normal user not approved ---->>  Show pending screen
         Navigator.pushAndRemoveUntil(
           context,
           MaterialPageRoute(
@@ -130,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-
+  // Pending approval screen dikhaane k widget
   Widget _buildPendingApprovalScreen() {
     return Scaffold(
       body: Center(
@@ -147,7 +147,7 @@ class _LoginScreenState extends State<LoginScreen> {
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 40),
               child: Text(
-                'Your account is under review. You will receive an email once approved.',
+                'Your account is under review ---->>> You will receive an email once approved.',
                 textAlign: TextAlign.center,
                 style: TextStyle(color: Colors.grey),
               ),
@@ -233,7 +233,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Email Field
                 TextFormField(
-                  controller: _emailController,
+                  controller: _userEmail,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     prefixIcon: const Icon(Icons.email_outlined),

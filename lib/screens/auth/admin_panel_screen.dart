@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/models/user_model.dart';
 import 'package:app/utils/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app/services/email_service.dart';
 import 'package:provider/provider.dart';
-
 import '../../services/auth_service.dart';
 import 'login_screen.dart';
 
@@ -28,81 +26,85 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   @override
   void initState() {
     super.initState();
+    // screen load hote hi users fetch kar rahe hain
     _loadUsers();
   }
 
   Future<void> _loadUsers() async {
-    setState(() => _isLoading = true);
+    setState(() => _isLoading = true); // loader show karna hai jab tak data aa raha hai
 
     try {
+      // firestore se sare users la rahe hain (latest pehle)
       final snapshot = await _firestore
           .collection('users')
           .orderBy('createdAt', descending: true)
           .get();
-
+      // sirf normal users chahiye (admin nahi)
       final allUsers = snapshot.docs
           .map((doc) => UserModel.fromFirestore(doc.data() as Map<String, dynamic>))
           .where((user) => user.userType == 'normal') // Only normal users
           .toList();
 
       setState(() {
+        // status ke hisaab se users alag alag list me daal   rahe hain
         _pendingUsers = allUsers.where((user) => user.status == 'pending').toList();
         _approvedUsers = allUsers.where((user) => user.status == 'approved').toList();
         _rejectedUsers = allUsers.where((user) => user.status == 'rejected').toList();
         _isLoading = false;
       });
     } catch (e) {
-      print('Error loading users: $e');
+      print('Error loading users: $e'); // agar koi issue aye to terminal me  show hoga
       setState(() => _isLoading = false);
     }
   }
 
   Future<void> _updateUserStatus(String userId, String status) async {
     try {
-      // Phele user ka data fetch hoga
+      // pehle user ka data nikle ga  taa k email bhej saken
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final userData = userDoc.data() as Map<String, dynamic>;
       final userEmail = userData['email'];
       final userName = '${userData['firstName']} ${userData['lastName']}';
 
-      print('📧 Sending email to: $userEmail');
-      print('👤 User name: $userName');
-      print('📋 Status: $status');
+      print('Sending email to: $userEmail');
+      print('User name: $userName');
+      print('Status: $status');
 
-      // STATUS UPDATE  FIREBASE
+      // firestore DB  me status update kar rahe hain
       await _firestore.collection('users').doc(userId).update({
         'status': status,
         'isApproved': status == 'approved',
         'isActive': status == 'approved',
       });
 
-      print('✅ User status updated in Firebase');
+      print('User status updated in Firebase');
 
-      // Email sent (AUTOMATIC)
+      // Email sending
       bool emailSent = false;
-
+      // status k hisaab se email bhejna
       if (status == 'approved') {
         emailSent = await EmailService.sendApprovalEmail(
           toEmail: userEmail,
           userName: userName,
         );
-        print('📨 Approval email sent: $emailSent');
+        print('Approval email sent: $emailSent');
       } else if (status == 'rejected') {
         emailSent = await EmailService.sendRejectionEmail(
           toEmail: userEmail,
           userName: userName,
         );
-        print('📨 Rejection email sent: $emailSent');
+        print('Rejection email sent: $emailSent');
       }
 
-      //  REFRESH LIST
+      // list dobara refresh kar rahe hain
       await _loadUsers();
 
-      //  SNACKBAR SHOW
+
       if (emailSent) {
+        // user ko result show karna
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('✅ User $status & email sent successfully!'),
+            content: Text('User $status successfully'),
             backgroundColor: Colors.green,
             duration: const Duration(seconds: 4),
           ),
@@ -110,7 +112,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('⚠️ User $status but email failed to send'),
+            content: Text('User $status  failed to send'),
             backgroundColor: Colors.orange,
             duration: const Duration(seconds: 4),
           ),
@@ -118,7 +120,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       }
 
     } catch (e) {
-      print('❌ Error in _updateUserStatus: $e');
+      //error handling k leye
+      print('Error in _updateUserStatus: $e');
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error: $e'),
@@ -128,7 +131,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
     }
   }
 
-// PIN Reset function
+// yeh function approved user ka pin reset karega
   Future<void> _resetUserPin(String userId) async {
     final shouldReset = await showDialog<bool>(
       context: context,
@@ -166,7 +169,8 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         final userName = '${userData['firstName']} ${userData['lastName']}';
 
         // Reset PIN in Firestore
-        const defaultPinHash = 'e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855';
+        const defaultPinHash = '9af15b336e6a961992b6c68d6e0b7cbb3c8c9e3c5f4d3b5f0e6d8e9a7b6c5d4';
+        // firestore me pin update kar rahe hain
         await _firestore.collection('users').doc(userId).update({
           'pin': defaultPinHash,
         });
@@ -180,14 +184,14 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         if (emailSent) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('✅ PIN reset to 0000 & email sent!'),
+              content: Text('PIN reset to 0000 & email sent!'),
               backgroundColor: Colors.green,
             ),
           );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('⚠️ PIN reset but email failed'),
+              content: Text(' PIN reset but email failed'),
               backgroundColor: Colors.orange,
             ),
           );
@@ -196,7 +200,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('❌ Error: $e'),
+            content: Text(' Error: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -457,7 +461,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   String _formatDate(DateTime date) {
     return '${date.day}/${date.month}/${date.year} ${date.hour}:${date.minute.toString().padLeft(2, '0')}';
   }
-
+// jo tab select hai os k  hisaab se list return karega
   List<UserModel> _getFilteredUsers() {
     switch (_selectedFilter) {
       case 'pending':
@@ -472,7 +476,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         return _pendingUsers;
     }
   }
-// Logout Function
+// admin logout function
   Future<void> _logout() async {
     try {
       // Show confirmation dialog
@@ -504,19 +508,19 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       // Get AuthService instance
       final authService = Provider.of<AuthService>(context, listen: false);
 
-      // Sign out
+      // auth service file me funtion add ha whan  se sign out kar rahe hain
       await authService.signOut();
 
-      // Navigate to login screen
+      // login screen pr wpis jaa rha ha
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (context) => const LoginScreen()),
             (route) => false,
       );
 
-      print('✅ Admin logged out successfully');
+      print('Admin logged out successfully');
     } catch (e) {
-      print('❌ Logout error: $e');
+      print('Logout error: $e');
       setState(() {
         _isLoading = false;
       });
