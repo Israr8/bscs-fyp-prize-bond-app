@@ -212,7 +212,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 Text(
                   'Pakbond',
-                  style: GoogleFonts.inter(
+                  style: GoogleFonts.acme(
                     fontSize: 36,
                     fontWeight: FontWeight.w700,
                     color: AppColors.primaryColor,
@@ -225,7 +225,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   'Prize Bond Checking App',
                   style: GoogleFonts.inter(
                     fontSize: 16,
-                    color: Colors.grey,
+                    color: Colors.black,
                   ),
                 ),
 
@@ -310,7 +310,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
                 // Login Button
                 SizedBox(
-                  width: double.infinity,
+                  width: double.infinity,  //screen ki jitni width hogi otnni ho jayegi
                   height: 56,
                   child: ElevatedButton(
                     onPressed: _isLoading ? null : _login,
@@ -372,7 +372,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     _buildSocialButton(
                       Icons.facebook,
                       'Facebook',
-                      Colors.blue,
+                      Colors.blueAccent,
                       onPressed: () {
                         // Facebook login
                       },
@@ -404,6 +404,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     TextButton(
+
                       onPressed: () {
                         Navigator.push(
                           context,
@@ -412,11 +413,14 @@ class _LoginScreenState extends State<LoginScreen> {
                           ),
                         );
                       },
+
+
                       child: Text(
                         'Register',
                         style: GoogleFonts.inter(
                           color: AppColors.primaryColor,
                           fontWeight: FontWeight.w600,
+
                         ),
                       ),
                     ),

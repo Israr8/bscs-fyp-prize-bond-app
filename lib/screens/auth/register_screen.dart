@@ -16,47 +16,47 @@ class RegisterScreen extends StatefulWidget {
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _firstNameController = TextEditingController();
-  final _lastNameController = TextEditingController();
-  final _emailController = TextEditingController();
-  final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
-  final _mobileController = TextEditingController();
-  final _pinController = TextEditingController();
-  final _confirmPinController = TextEditingController();
-  final _addressController = TextEditingController();
-  final _cityController = TextEditingController();
-  final _formKey = GlobalKey<FormState>();
+  final firstName = TextEditingController();
+  final lastName = TextEditingController();
+  final email = TextEditingController();
+  final password = TextEditingController();
+  final confirmpassword = TextEditingController();
+  final mobile = TextEditingController();
+  final pin = TextEditingController();
+  final confirmPin = TextEditingController();
+  final address = TextEditingController();
+  final city = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
-  bool _isLoading = false;
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
-  bool _obscurePin = true;
-  bool _obscureConfirmPin = true;
+  bool isLoading = false;
+  bool hidePassword  = true;
+  bool hideConfirmPassword  = true;
+  bool hidePin  = true;
+  bool hideConfirmPin  = true;
   String _userType = 'normal'; // Default to normal user
 
   @override
   void dispose() {
-    _firstNameController.dispose();
-    _lastNameController.dispose();
-    _emailController.dispose();
-    _passwordController.dispose();
-    _confirmPasswordController.dispose();
-    _mobileController.dispose();
-    _pinController.dispose();
-    _confirmPinController.dispose();
-    _addressController.dispose();
-    _cityController.dispose();
+    firstName.dispose();
+    lastName.dispose();
+    email.dispose();
+    password.dispose();
+    confirmpassword.dispose();
+    mobile.dispose();
+    pin.dispose();
+    confirmPin.dispose();
+    address.dispose();
+    city.dispose();
     super.dispose();
   }
 
 
 
-  Future<void> _register() async {
-    if (!_formKey.currentState!.validate()) return;
+  Future<void> registerUser() async {
+    if (!formKey.currentState!.validate()) return;
 
     // Validate password match
-    if (_passwordController.text != _confirmPasswordController.text) {
+    if (password.text != confirmpassword.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Passwords do not match'),
@@ -67,7 +67,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     // Validate PIN match
-    if (_pinController.text != _confirmPinController.text) {
+    if (pin.text != confirmPin.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('PINs do not match'),
@@ -78,7 +78,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
 
     // Validate PIN is 4 digits
-    if (_pinController.text.length != 4 || !RegExp(r'^\d{4}$').hasMatch(_pinController.text)) {
+    if (pin.text.length != 4 || !RegExp(r'^\d{4}$').hasMatch(pin.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('PIN must be 4 digits'),
@@ -88,18 +88,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
       return;
     }
 
-    setState(() => _isLoading = true);
+    setState(() => isLoading = true);
 
     try {
       await context.read<AuthService>().registerWithEmailAndPassword(
-        firstName: _firstNameController.text.trim(),
-        lastName: _lastNameController.text.trim(),
-        email: _emailController.text.trim(),
-        password: _passwordController.text.trim(),
-        mobileNo: _mobileController.text.trim(),
-        pin: _pinController.text.trim(),
-        address: _addressController.text.trim(),
-        city: _cityController.text.trim(),
+        firstName: firstName.text.trim(),
+        lastName: lastName.text.trim(),
+        email: email.text.trim(),
+        password: password.text.trim(),
+        mobileNo: mobile.text.trim(),
+        pin: pin.text.trim(),
+        address: address.text.trim(),
+        city: city.text.trim(),
         userType: _userType,
       );
 
@@ -108,9 +108,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(
-            '✅ Registration successful! Your account is pending admin approval. '
-                'You will receive an email once approved.',
+           content: Text(
+            'Registration successful. Wait for admin approval email.',
           ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 5),
@@ -125,11 +124,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
     } on FirebaseAuthException catch (e) {
-      // ... rest of error handling
+
     } catch (e) {
-      // ... rest of error handling
+
     } finally {
-      if (mounted) setState(() => _isLoading = false);
+      if (mounted) setState(() => isLoading = false);
     }
   }
 
@@ -147,7 +146,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: Form(
-            key: _formKey,
+            key: formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -160,7 +159,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   children: [
                     Expanded(
                       child: TextFormField(
-                        controller: _firstNameController,
+                        controller: firstName,
                         decoration: InputDecoration(
                           labelText: 'First Name',
                           prefixIcon: const Icon(Icons.person_outline),
@@ -179,7 +178,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: TextFormField(
-                        controller: _lastNameController,
+                        controller: lastName,
                         decoration: InputDecoration(
                           labelText: 'Last Name',
                           border: OutlineInputBorder(
@@ -201,7 +200,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Email Field
                 TextFormField(
-                  controller: _emailController,
+                  controller: email,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     prefixIcon: const Icon(Icons.email_outlined),
@@ -225,7 +224,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Mobile No Field
                 TextFormField(
-                  controller: _mobileController,
+                  controller: mobile,
                   decoration: InputDecoration(
                     labelText: 'Mobile No',
                     prefixIcon: const Icon(Icons.phone_outlined),
@@ -251,19 +250,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Password Field
                 TextFormField(
-                  controller: _passwordController,
+                  controller: password,
                   decoration: InputDecoration(
                     labelText: 'Password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword
+                        hidePassword
                             ? Icons.visibility_off
                             : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() {
-                          _obscurePassword = !_obscurePassword;
+                          hidePassword  = !hidePassword ;
                         });
                       },
                     ),
@@ -271,7 +270,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  obscureText: _obscurePassword,
+                  obscureText: hidePassword ,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter password';
@@ -287,19 +286,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Confirm Password Field
                 TextFormField(
-                  controller: _confirmPasswordController,
+                  controller: confirmpassword,
                   decoration: InputDecoration(
                     labelText: 'Confirm Password',
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPassword
+                        hideConfirmPassword
                             ? Icons.visibility_off
                             : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
+                          hideConfirmPassword  = !hideConfirmPassword ;
                         });
                       },
                     ),
@@ -307,12 +306,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  obscureText: _obscureConfirmPassword,
+                  obscureText: hideConfirmPassword ,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please confirm password';
                     }
-                    if (value != _passwordController.text) {
+                    if (value != password.text) {
                       return 'Passwords do not match';
                     }
                     return null;
@@ -323,17 +322,17 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // PIN Field
                 TextFormField(
-                  controller: _pinController,
+                  controller: pin,
                   decoration: InputDecoration(
                     labelText: '4-digit PIN',
                     prefixIcon: const Icon(Icons.pin_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePin ? Icons.visibility_off : Icons.visibility,
+                        hidePin  ? Icons.visibility_off : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() {
-                          _obscurePin = !_obscurePin;
+                          hidePin  = !hidePin ;
                         });
                       },
                     ),
@@ -341,7 +340,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  obscureText: _obscurePin,
+                  obscureText: hidePin ,
                   keyboardType: TextInputType.number,
                   maxLength: 4,
                   validator: (value) {
@@ -359,19 +358,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Confirm PIN Field
                 TextFormField(
-                  controller: _confirmPinController,
+                  controller: confirmPin,
                   decoration: InputDecoration(
                     labelText: 'Confirm PIN',
                     prefixIcon: const Icon(Icons.pin_outlined),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscureConfirmPin
+                        hideConfirmPin
                             ? Icons.visibility_off
                             : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() {
-                          _obscureConfirmPin = !_obscureConfirmPin;
+                          hideConfirmPin  = !hideConfirmPin ;
                         });
                       },
                     ),
@@ -379,14 +378,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  obscureText: _obscureConfirmPin,
+                  obscureText: hideConfirmPin ,
                   keyboardType: TextInputType.number,
                   maxLength: 4,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please confirm PIN';
                     }
-                    if (value != _pinController.text) {
+                    if (value != pin.text) {
                       return 'PINs do not match';
                     }
                     return null;
@@ -399,7 +398,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // Address Field
                 TextFormField(
-                  controller: _addressController,
+                  controller: address,
                   decoration: InputDecoration(
                     labelText: 'Address',
                     prefixIcon: const Icon(Icons.home_outlined),
@@ -420,7 +419,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
                 // City Field
                 TextFormField(
-                  controller: _cityController,
+                  controller: city,
                   decoration: InputDecoration(
                     labelText: 'City',
                     prefixIcon: const Icon(Icons.location_city_outlined),
@@ -514,14 +513,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   width: double.infinity,
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _register,
+                    onPressed: isLoading ? null : registerUser,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: _isLoading
+                    child: isLoading
                         ? const SizedBox(
                       width: 24,
                       height: 24,

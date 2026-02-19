@@ -5,7 +5,6 @@ import 'package:app/services/auth_service.dart';
 import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/screens/auth/pin_authentication_screen.dart';
 import 'package:app/screens/auth/admin_panel_screen.dart';
-import 'package:app/screens/home_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});

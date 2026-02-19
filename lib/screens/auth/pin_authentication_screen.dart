@@ -14,24 +14,27 @@ class PinAuthenticationScreen extends StatefulWidget {
 }
 
 class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
+  // yaha user k entered 4 digit pin store ho rha ha
   final List<String> _enteredPin = [];
   bool _isLoading = false;
-  bool _showError = false;
+  bool _showError = false;// agar pin galat ho to error show krne k liye
 
   void _onNumberPressed(String number) {
+    // max 4 digit allow kr rhe hain
     if (_enteredPin.length < 4) {
       setState(() {
         _enteredPin.add(number);
-        _showError = false;
+        _showError = false;  // error false hi hoga jb tk user 4 digit complete na kr ley
       });
     }
-
+    //  4 digit complete hon gye to tb pin verify hogi
     if (_enteredPin.length == 4) {
       _verifyPin();
     }
   }
 
   void _onBackspacePressed() {
+    // agar kuch enter kiya hua ha to last digit remove krdo
     if (_enteredPin.isNotEmpty) {
       setState(() {
         _enteredPin.removeLast();
@@ -41,6 +44,7 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
   }
 
   Future<void> _verifyPin() async {
+    // verify start hote hi loading true ho jaye gi spinner aye ga bottom pr
     setState(() {
       _isLoading = true;
     });
@@ -49,22 +53,22 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
       final pin = _enteredPin.join('');
       final authService = context.read<AuthService>();
 
-      debugPrint('🔐 Verifying PIN: $pin');
+      debugPrint('Verifying PIN');
       final isValid = await authService.verifyPin(pin);
 
       if (isValid) {
-        debugPrint('✅ PIN verified successfully');
-
-        // Navigate to home screen
+        debugPrint('PIN verified successfully');
+        // pin sai ha to direct home pe bhej do
         if (mounted) {
           Navigator.pushAndRemoveUntil(
             context,
             MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,
+                (route) => false,  // purani screens remove
           );
         }
       } else {
-        debugPrint('❌ Invalid PIN');
+        debugPrint('Invalid PIN');
+        // agar pin galat ha to clear krdo or error show hoga
         if (mounted) {
           setState(() {
             _showError = true;
@@ -73,7 +77,8 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
         }
       }
     } catch (e) {
-      debugPrint('❌ PIN verification error: $e');
+      debugPrint('PIN verification error: $e');
+      // agar koi exception aye (network ya firebase issue)
       if (mounted) {
         setState(() {
           _showError = true;
@@ -81,6 +86,7 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
         });
       }
     } finally {
+      // verify complete hone pe loading false ho jaye gi / agr true ho to loading hi hoti rhe gi
       if (mounted) {
         setState(() {
           _isLoading = false;
@@ -90,6 +96,7 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
   }
 
   void _showForgotPinDialog() {
+    // simple dialog box  user ko guide krne k liye
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -97,33 +104,31 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text('If you have forgotten your PIN, you need to:'),
-            const SizedBox(height: 10),
-            const Text('1. Logout from your account'),
-            const Text('2. Contact admin to reset your PIN'),
-            const Text('3. Admin will reset your PIN to default (0000)'),
-            const SizedBox(height: 15),
+          children: const [
+            // ''' ye line break k leye hota ha " es me ap line break ni kr skty hain
             Text(
-              'Default PIN after reset: 0000',
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                color: AppColors.primaryColor,
-              ),
+              '''If you've forgotten your PIN, please logout and contact the administrator.
+They will securely reset it for you.''',
             ),
+            SizedBox(height: 15),
           ],
         ),
         actions: [
+          // sirf dialog close
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('Cancel'),
           ),
           TextButton(
+            // logout krke login screen pe chla jaye ga user
             onPressed: () {
               Navigator.pop(context);
               _logoutAndGoToLogin();
             },
-            child: const Text('Logout', style: TextStyle(color: Colors.red)),
+            child: const Text(
+              'Logout',
+              style: TextStyle(color: Colors.red),
+            ),
           ),
         ],
       ),
@@ -134,11 +139,12 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
     final authService = context.read<AuthService>();
     try {
       setState(() {
-        _isLoading = true;
+        _isLoading = true; // logout k time b loader show
+
       });
 
       await authService.signOut();
-
+// logout k baad direct login screen
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,
@@ -147,7 +153,8 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
         );
       }
     } catch (e) {
-      debugPrint('❌ Logout failed: $e');
+      // agar logout fail ho jaye
+      debugPrint(' Logout failed: $e');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
