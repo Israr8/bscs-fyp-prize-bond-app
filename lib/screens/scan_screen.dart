@@ -122,7 +122,6 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // ✅ SHOW DENOMINATION SELECTION DIALOG
   Future<String?> _showDenominationDialog() async {
     return showDialog<String>(
       context: context,
@@ -150,7 +149,6 @@ class _ScanScreenState extends State<ScanScreen> {
     );
   }
 
-  // ✅ GALLERY SCAN WITH DENOMINATION SELECTION
   Future<void> _scanFromGallery() async {
     final selectedDenomination = await _showDenominationDialog();
     if (selectedDenomination == null) return;
@@ -196,7 +194,6 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // ✅ LIVE CAMERA SCAN WITH DENOMINATION SELECTION
   Future<void> _startLiveCameraScan() async {
     if (!_isCameraInitialized) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -276,7 +273,6 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // ✅ ADVANCED BOND NUMBER EXTRACTION
   String _extractBondNumberAdvanced(String text) {
     String cleanText = text.replaceAll(RegExp(r'[^\d\n]'), '');
     List<String> lines = cleanText.split('\n');
@@ -312,7 +308,6 @@ class _ScanScreenState extends State<ScanScreen> {
     return '';
   }
 
-  // ✅ VALIDATION FOR BOND NUMBERS
   bool _isValidBondNumber(String number) {
     if (number.length != 6) return false;
 
@@ -341,7 +336,6 @@ class _ScanScreenState extends State<ScanScreen> {
     });
   }
 
-  // ✅ CHECK BOND IN DRAWS DATABASE WITH CELEBRATION
   Future<void> _checkBondInDraws() async {
     if (_scannedBondNumber.isEmpty || _bondDenomination.isEmpty) {
       setState(() {
@@ -599,7 +593,7 @@ class _ScanScreenState extends State<ScanScreen> {
       message += 'Denomination: Rs. $_bondDenomination Prize Bond\n';
 
       if (_scanResult?['isWinner'] == true) {
-        message += '🎉 STATUS: WINNER!\n';
+        message += 'STATUS: WINNER!\n';
         message += 'Prize Amount: Rs. ${_scanResult?['prizeAmount']}\n';
         message += 'Prize Type: ${_scanResult?['prizeType']}\n';
         if (_scanResult?['drawNumber'] != null) {
@@ -647,7 +641,6 @@ class _ScanScreenState extends State<ScanScreen> {
     }
   }
 
-  // ✅ BUILD SCANNER LINE FOR CAMERA VIEW
   Widget _buildScannerLine() {
     return AnimatedContainer(
       duration: const Duration(milliseconds: 2000),

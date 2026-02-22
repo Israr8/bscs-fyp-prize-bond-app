@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app/utils/constants.dart';
-import 'package:app/models/market_item.dart'; // ✅ Import model
+import 'package:app/models/market_item.dart';
 
 class PostItemSheet extends StatefulWidget {
   final Function(String, String, double, String, String) onPost;

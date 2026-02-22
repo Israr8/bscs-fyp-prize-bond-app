@@ -22,8 +22,6 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   final List<Widget> _screens = [
     const HomeDashboard(),
@@ -48,12 +46,6 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Future<void> _sendTestNotification() async {
-    await NotificationService.showNotification(
-      title: 'New Draw Result!',
-      body: 'December 2024 draw results are now available',
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -69,7 +61,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         centerTitle: true,
         actions: [
-          // ✅ UPDATED: Dynamic Notification Badge
           Stack(
             children: [
               IconButton(
@@ -79,9 +70,8 @@ class _HomeScreenState extends State<HomeScreen> {
               ValueListenableBuilder<List<Map<String, dynamic>>>(
                 valueListenable: NotificationService.notificationsList,
                 builder: (context, notifications, child) {
-                  final unreadCount = notifications
-                      .where((n) => n['read'] == false)
-                      .length;
+                  final unreadCount =
+                      notifications.where((n) => n['isRead'] == false).length;
 
                   if (unreadCount == 0) {
                     return const SizedBox.shrink();
@@ -152,10 +142,10 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
+//  Dynamic HomeDashboard CLASS
   }
 }
 
-// ✅ UPDATED: Dynamic HomeDashboard CLASS
 class HomeDashboard extends StatelessWidget {
   const HomeDashboard({super.key});
 
@@ -167,32 +157,32 @@ class HomeDashboard extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
+          //  DYNAMIC User Info Card
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // ✅ DYNAMIC User Info Card
           StreamBuilder<DocumentSnapshot>(
             stream: user != null
+              // Default data if user not logged in or data not available
                 ? _firestore.collection('users').doc(user.uid).snapshots()
                 : null,
             builder: (context, snapshot) {
-              // Default data if user not logged in or data not available
               String userName = 'User';
               String userEmail = 'Not logged in';
               String package = 'FREE';
               String expiry = '∞';
+                // Get data from Firebase Auth
               String space = '0/1,000';
 
               if (user != null) {
-                // Get data from Firebase Auth
-                userName = user.displayName ??
-                    user.email?.split('@').first ??
-                    'User';
+                userName =
+                // Get data from Firestore if available
+                    user.displayName ?? user.email?.split('@').first ?? 'User';
                 userEmail = user.email ?? 'No email';
 
-                // Get data from Firestore if available
                 if (snapshot.hasData && snapshot.data!.exists) {
-                  final userData = snapshot.data!.data() as Map<String, dynamic>?;
+                  final userData =
+                      snapshot.data!.data() as Map<String, dynamic>?;
                   if (userData != null) {
                     userName = userData['name']?.toString() ?? userName;
                     package = userData['package']?.toString() ?? package;
@@ -207,35 +197,49 @@ class HomeDashboard extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.primaryColor.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primaryColor.withOpacity(0.3)),
+                  border: Border.all(
+                      color: AppColors.primaryColor.withOpacity(0.3)),
+                    // Profile Picture from Firestore or default
                 ),
                 child: Row(
                   children: [
-                    // Profile Picture from Firestore or default
                     CircleAvatar(
                       radius: 28,
                       backgroundColor: AppColors.primaryColor,
                       backgroundImage: snapshot.hasData &&
-                          snapshot.data!.exists &&
-                          (snapshot.data!.data() as Map<String, dynamic>?)?['profileImage'] != null &&
-                          (snapshot.data!.data() as Map<String, dynamic>?)!['profileImage'].toString().isNotEmpty
+                              snapshot.data!.exists &&
+                              (snapshot.data!.data() as Map<String, dynamic>?)?[
+                                      'profileImage'] !=
+                                  null &&
+                              (snapshot.data!.data()
+                                      as Map<String, dynamic>?)!['profileImage']
+                                  .toString()
+                                  .isNotEmpty
                           ? NetworkImage(
-                        (snapshot.data!.data() as Map<String, dynamic>?)?['profileImage'] as String,
-                      ) as ImageProvider
+                              (snapshot.data!.data()
+                                      as Map<String, dynamic>?)?['profileImage']
+                                  as String,
+                            ) as ImageProvider
                           : null,
                       child: snapshot.hasData &&
-                          snapshot.data!.exists &&
-                          (snapshot.data!.data() as Map<String, dynamic>?)?['profileImage'] != null &&
-                          (snapshot.data!.data() as Map<String, dynamic>?)!['profileImage'].toString().isNotEmpty
+                              snapshot.data!.exists &&
+                              (snapshot.data!.data() as Map<String, dynamic>?)?[
+                                      'profileImage'] !=
+                                  null &&
+                              (snapshot.data!.data()
+                                      as Map<String, dynamic>?)!['profileImage']
+                                  .toString()
+                                  .isNotEmpty
                           ? null
-                          : const Icon(Icons.person, size: 28, color: Colors.white),
+                          : const Icon(Icons.person,
+                              size: 28, color: Colors.white),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
+                          // User Name
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // User Name
                           Text(
                             userName,
                             style: GoogleFonts.inter(
@@ -244,10 +248,10 @@ class HomeDashboard extends StatelessWidget {
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                          // User Email
                           ),
                           const SizedBox(height: 4),
 
-                          // User Email
                           Text(
                             userEmail,
                             style: GoogleFonts.inter(
@@ -256,16 +260,18 @@ class HomeDashboard extends StatelessWidget {
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
+                          // Package Info
                           ),
                           const SizedBox(height: 8),
 
-                          // Package Info
                           Wrap(
                             spacing: 8,
                             runSpacing: 4,
                             children: [
-                              _buildPackageInfo('Package: $package', Icons.card_giftcard),
-                              _buildPackageInfo('Expiry: $expiry', Icons.calendar_today),
+                              _buildPackageInfo(
+                                  'Package: $package', Icons.card_giftcard),
+                              _buildPackageInfo(
+                                  'Expiry: $expiry', Icons.calendar_today),
                               _buildPackageInfo('Space: $space', Icons.storage),
                             ],
                           ),
@@ -277,10 +283,10 @@ class HomeDashboard extends StatelessWidget {
               );
             },
           ),
+          // Features Grid (Unchanged)
 
           const SizedBox(height: 24),
 
-          // Features Grid (Unchanged)
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
@@ -288,10 +294,11 @@ class HomeDashboard extends StatelessWidget {
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
             childAspectRatio: 1.2,
+
             children: [
               CustomCard(
                 title: 'Quick Check',
-                icon: Icons.search,
+                icon: Icons.fact_check_outlined,
                 color: Colors.blue,
                 onTap: () => Navigator.push(
                   context,
@@ -302,7 +309,7 @@ class HomeDashboard extends StatelessWidget {
               ),
               CustomCard(
                 title: 'Quick Scan',
-                icon: Icons.qr_code_scanner,
+                icon: Icons.qr_code_scanner_rounded,
                 color: Colors.green,
                 onTap: () => Navigator.push(
                   context,
@@ -313,7 +320,7 @@ class HomeDashboard extends StatelessWidget {
               ),
               CustomCard(
                 title: 'My Bonds',
-                icon: Icons.attach_money,
+                icon: Icons.account_balance,
                 color: Colors.orange,
                 onTap: () => Navigator.push(
                   context,
@@ -385,119 +392,14 @@ class HomeDashboard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 24),
-
-          // ✅ DYNAMIC Statistics Section
-          StreamBuilder<DocumentSnapshot>(
-            stream: _auth.currentUser != null
-                ? _firestore.collection('users').doc(_auth.currentUser!.uid).collection('statistics').doc('current').snapshots()
-                : null,
-            builder: (context, snapshot) {
-              int totalBonds = 3;
-              int wonPrizes = 1;
-              int missedPrizes = 0;
-
-              if (snapshot.hasData && snapshot.data!.exists) {
-                final stats = snapshot.data!.data() as Map<String, dynamic>?;
-                if (stats != null) {
-                  totalBonds = stats['totalBonds'] ?? totalBonds;
-                  wonPrizes = stats['wonPrizes'] ?? wonPrizes;
-                  missedPrizes = stats['missedPrizes'] ?? missedPrizes;
-                }
-              }
-
-              return Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey[50],
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey[200]!),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Statistics',
-                      style: GoogleFonts.inter(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        _buildStatItem('Total Bonds', '$totalBonds', Icons.money),
-                        _buildStatItem('Won Prizes', '$wonPrizes', Icons.emoji_events),
-                        _buildStatItem('Missed Prizes', '$missedPrizes', Icons.warning),
-                      ],
-                    ),
-                  ],
-                ),
-              );
-            },
-          ),
-
+          const SizedBox(height: 45),
           const SizedBox(height: 20),
-
-          // Ads Banner (Unchanged)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.primaryColor, Colors.blue[700]!],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Ads se pareshan hain?',
-                  style: GoogleFonts.inter(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'Pakbond ki Paid Subscription se ads khatam karain!',
-                  style: GoogleFonts.inter(
-                    fontSize: 12,
-                    color: Colors.white.withOpacity(0.9),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Subscription purchase coming soon!'),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(30),
-                    ),
-                  ),
-                  child: const Text('Buy Now'),
-                ),
-              ],
-            ),
-          ),
         ],
       ),
+  // Package Info Widget
     );
   }
 
-  // Package Info Widget
   Widget _buildPackageInfo(String text, IconData icon) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
@@ -524,38 +426,6 @@ class HomeDashboard extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-
-  // Stat Item Widget
-  Widget _buildStatItem(String title, String value, IconData icon) {
-    return Column(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey[300]!),
-          ),
-          child: Icon(icon, color: AppColors.primaryColor, size: 20),
-        ),
-        const SizedBox(height: 6),
-        Text(
-          value,
-          style: GoogleFonts.inter(
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-        Text(
-          title,
-          style: GoogleFonts.inter(
-            fontSize: 11,
-            color: Colors.grey,
-          ),
-        ),
-      ],
     );
   }
 }

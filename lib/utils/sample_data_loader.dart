@@ -45,9 +45,9 @@ class SampleDataLoader {
         await _firestore.collection('prize_bonds').add(bond);
       }
 
-      debugPrint('✅ Sample prize bond data added successfully!');
+      debugPrint('Sample prize bond data added');
     } catch (e) {
-      debugPrint('❌ Error adding sample data: $e');
+      debugPrint('Error adding sample data: $e');
     }
   }
 

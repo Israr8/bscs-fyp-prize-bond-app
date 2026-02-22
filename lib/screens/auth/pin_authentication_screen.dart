@@ -228,10 +228,10 @@ They will securely reset it for you.''',
                   MediaQuery.of(context).padding.bottom,
             ),
             child: IntrinsicHeight(
+                  // App Icon
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  // App Icon
                   Container(
                     width: 100,
                     height: 100,
@@ -245,10 +245,10 @@ They will securely reset it for you.''',
                       color: Colors.white,
                     ),
                   ),
+                  // Title
 
                   const SizedBox(height: 40),
 
-                  // Title
                   Text(
                     'Enter PIN',
                     style: GoogleFonts.inter(
@@ -267,10 +267,10 @@ They will securely reset it for you.''',
                       color: Colors.grey,
                     ),
                   ),
+                  // PIN Indicators
 
                   const SizedBox(height: 40),
 
-                  // PIN Indicators
                   _buildPinIndicator(),
 
                   if (_showError) ...[
@@ -283,10 +283,10 @@ They will securely reset it for you.''',
                       ),
                     ),
                   ],
+                  // Numeric Keypad
 
                   const SizedBox(height: 60),
 
-                  // Numeric Keypad
                   Column(
                     children: [
                       Row(
@@ -334,10 +334,10 @@ They will securely reset it for you.''',
                       ),
                     ],
                   ),
+                  // Forgot PIN Button
 
                   const SizedBox(height: 30),
 
-                  // Forgot PIN Button
                   TextButton(
                     onPressed: _showForgotPinDialog,
                     child: Text(
@@ -346,10 +346,10 @@ They will securely reset it for you.''',
                         color: AppColors.primaryColor,
                         fontSize: 16,
                       ),
+                  // Back to Login Button
                     ),
                   ),
 
-                  // Back to Login Button
                   TextButton(
                     onPressed: _logoutAndGoToLogin,
                     child: Text(

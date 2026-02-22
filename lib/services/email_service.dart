@@ -2,13 +2,10 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
 class EmailService {
-  // 🔴 YAHAN APNI EMAIL AUR APP PASSWORD DAALO
   static final String _username = 'pakbondapp@gmail.com';
   static final String _password = 'bdlq qukv zazm lajz';
-
   static final SmtpServer _smtpServer = gmail(_username, _password);
 
-  // 📧 APPROVAL EMAIL
   static Future<bool> sendApprovalEmail({
     required String toEmail,
     required String userName,
@@ -17,7 +14,7 @@ class EmailService {
       final message = Message()
         ..from = Address(_username, 'Pakbond Admin')
         ..recipients.add(toEmail)
-        ..subject = '✅ Congratulations! Your Pakbond Account is Approved'
+        ..subject = 'Congratulations! Your Pakbond Account is Approved'
         ..html = '''
 <!DOCTYPE html>
 <html>
@@ -34,13 +31,13 @@ class EmailService {
 <body>
   <div class="container">
     <div class="header">
-      <h1>🎉 Account Approved!</h1>
+      <h1>Account Approved!</h1>
     </div>
     <div class="content">
       <h2>Welcome to Pakbond, $userName!</h2>
       <p>We are pleased to inform you that your account has been <strong style="color: #4CAF50;">approved</strong> by the admin.</p>
 
-      <h3>📱 Next Steps:</h3>
+      <h3>Next Steps:</h3>
       <ol>
         <li>Open the Pakbond app</li>
         <li>Login with your email and password</li>
@@ -51,7 +48,7 @@ class EmailService {
       <p><strong>Default PIN:</strong> Use the PIN you created during registration</p>
 
       <center>
-        <a href="YOUR_APP_LINK" class="button">🚀 Open Pakbond App</a>
+        <a href="YOUR_APP_LINK" class="button">Open Pakbond App</a>
       </center>
 
       <p style="margin-top: 30px;">If you didn't register for Pakbond, please ignore this email.</p>
@@ -66,15 +63,14 @@ class EmailService {
 ''';
 
       await send(message, _smtpServer);
-      print('✅ Approval email sent to: $toEmail');
+      print('Approval email sent to: $toEmail');
       return true;
     } catch (e) {
-      print('❌ Email error: $e');
+      print('Email error: $e');
       return false;
     }
   }
 
-  // 📧 REJECTION EMAIL
   static Future<bool> sendRejectionEmail({
     required String toEmail,
     required String userName,
@@ -83,7 +79,7 @@ class EmailService {
       final message = Message()
         ..from = Address(_username, 'Pakbond Admin')
         ..recipients.add(toEmail)
-        ..subject = 'ℹ️ Your Pakbond Account Status Update'
+        ..subject = 'Your Pakbond Account Status Update'
         ..html = '''
 <!DOCTYPE html>
 <html>
@@ -100,13 +96,13 @@ class EmailService {
 <body>
   <div class="container">
     <div class="header">
-      <h1>📋 Account Status Update</h1>
+      <h1>Account Status Update</h1>
     </div>
     <div class="content">
       <h2>Hello $userName,</h2>
       <p>Your Pakbond account application has been <strong style="color: #f44336;">rejected</strong>.</p>
 
-      <h3>❓ Possible Reasons:</h3>
+      <h3>Possible Reasons:</h3>
       <ul>
         <li>Incomplete or incorrect information</li>
         <li>Unable to verify provided details</li>
@@ -116,7 +112,7 @@ class EmailService {
       <p>If you believe this is a mistake, please contact our support team:</p>
 
       <center>
-        <a href="mailto:support@pakbond.com" class="button">📧 Contact Support</a>
+        <a href="mailto:support@pakbond.com" class="button">Contact Support</a>
       </center>
 
       <p style="margin-top: 30px;">You can register again with correct information.</p>
@@ -131,15 +127,14 @@ class EmailService {
 ''';
 
       await send(message, _smtpServer);
-      print('✅ Rejection email sent to: $toEmail');
+      print('Rejection email sent to: $toEmail');
       return true;
     } catch (e) {
-      print('❌ Email error: $e');
+      print('Email error: $e');
       return false;
     }
   }
 
-  // 📧 PIN RESET EMAIL
   static Future<bool> sendPinResetEmail({
     required String toEmail,
     required String userName,
@@ -148,7 +143,7 @@ class EmailService {
       final message = Message()
         ..from = Address(_username, 'Pakbond Admin')
         ..recipients.add(toEmail)
-        ..subject = '🔐 Your Pakbond PIN Has Been Reset'
+        ..subject = 'Your Pakbond PIN Has Been Reset'
         ..html = '''
 <!DOCTYPE html>
 <html>
@@ -165,7 +160,7 @@ class EmailService {
 <body>
   <div class="container">
     <div class="header">
-      <h1>🔑 PIN Reset Successful</h1>
+      <h1>PIN Reset Successful</h1>
     </div>
     <div class="content">
       <h2>Hello $userName,</h2>
@@ -176,7 +171,7 @@ class EmailService {
         <strong>0000</strong>
       </div>
 
-      <p style="color: #f44336;"><strong>⚠️ Important Security Tip:</strong></p>
+      <p style="color: #f44336;"><strong>Important: Change your PIN after first login.</strong></p>
       <p>Please login with PIN <strong>0000</strong> and immediately change it to a new 4-digit PIN in the app settings.</p>
 
       <p>If you didn't request this reset, please contact support immediately.</p>
@@ -191,10 +186,10 @@ class EmailService {
 ''';
 
       await send(message, _smtpServer);
-      print('✅ PIN reset email sent to: $toEmail');
+      print('PIN reset email sent to: $toEmail');
       return true;
     } catch (e) {
-      print('❌ Email error: $e');
+      print('Email error: $e');
       return false;
     }
   }

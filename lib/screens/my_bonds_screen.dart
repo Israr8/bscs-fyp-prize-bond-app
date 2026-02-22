@@ -68,7 +68,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
 // Check all draws once on startup
   Future<void> _checkAllDrawsOnce() async {
     try {
-      debugPrint('🔄 Checking all draws on startup...');
+      debugPrint('Checking draws on startup...');
 
       final snapshot = await _firestore
           .collection('draws')
@@ -83,7 +83,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         }
       }
     } catch (e) {
-      debugPrint('❌ Error checking draws on startup: $e');
+      debugPrint('Error checking draws on startup: $e');
     }
   }
 
@@ -101,9 +101,9 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
       if (snapshot.docs.isNotEmpty) {
         debugPrint('🎯 ${snapshot.docs.length} draws found for checking');
 
-        // IMPORTANT: Check if bonds are loaded
+        // bonds load honay do
         if (_myBonds.isEmpty) {
-          debugPrint('⚠️ No bonds to check, reloading...');
+          debugPrint('No bonds to check, reloading...');
           await _loadMyBonds();
         }
 
@@ -113,7 +113,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         }
       }
     }, onError: (error) {
-      debugPrint('❌ Draws listener error: $error');
+      debugPrint('Draws listener error: $error');
     });
   }
 
@@ -126,7 +126,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
       final drawId = latestDraw.id;
       final drawDenomination = drawData['denomination']?.toString() ?? '';
 
-      // ✅ ADD THIS DEBUG CODE
       debugPrint('=== DRAW DATA DEBUG ===');
       debugPrint('Draw Number: ${drawData['drawNumber']}');
       debugPrint('Draw Denomination: $drawDenomination');
@@ -154,7 +153,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
 
         if (bondNumber == null) continue;
 
-        // ✅ IMPORTANT: Check if bond denomination matches draw denomination
+        // bond denomination draw se match honi chahiye
         if (bondDenomination != drawDenomination) {
           debugPrint('Skipping bond $bondNumber - Denomination mismatch: $bondDenomination vs $drawDenomination');
           continue;
@@ -175,7 +174,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
           isWinner = true;
           prizeType = 'First Prize';
           prizeAmount = getPrizeAmount('first', bondDenomination);
-          debugPrint('🎉 Bond $bondNumber is FIRST PRIZE winner');
+          debugPrint('Bond $bondNumber is FIRST PRIZE winner');
         }
 
         // Check second prizes
@@ -190,7 +189,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
                 isWinner = true;
                 prizeType = 'Second Prize';
                 prizeAmount = getPrizeAmount('second', bondDenomination);
-                debugPrint('🎉 Bond $bondNumber is SECOND PRIZE winner');
+                debugPrint('Bond $bondNumber is SECOND PRIZE winner');
                 break;
               }
             }
@@ -202,7 +201,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
               isWinner = true;
               prizeType = 'Second Prize';
               prizeAmount = getPrizeAmount('second', bondDenomination);
-              debugPrint('🎉 Bond $bondNumber is SECOND PRIZE winner (string)');
+              debugPrint('Bond $bondNumber is SECOND PRIZE winner (string)');
             }
           }
         }
@@ -231,7 +230,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
                   isWinner = true;
                   prizeType = 'Third Prize';
                   prizeAmount = getPrizeAmount('third', bondDenomination);
-                  debugPrint('🎉🎉🎉 MATCH FOUND! Bond $bondNumber is THIRD PRIZE winner at index $i');
+                  debugPrint('Bond $bondNumber is THIRD PRIZE winner at index $i');
                   break;
                 }
               }
@@ -251,7 +250,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
                   isWinner = true;
                   prizeType = 'Third Prize';
                   prizeAmount = getPrizeAmount('third', bondDenomination);
-                  debugPrint('🎉 Bond $bondNumber is THIRD PRIZE winner in string');
+                  debugPrint('Bond $bondNumber is THIRD PRIZE winner in string');
                   break;
                 }
               }
@@ -261,7 +260,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
                 isWinner = true;
                 prizeType = 'Third Prize';
                 prizeAmount = getPrizeAmount('third', bondDenomination);
-                debugPrint('🎉 Bond $bondNumber is THIRD PRIZE winner (single)');
+                debugPrint('Bond $bondNumber is THIRD PRIZE winner (single)');
               }
             }
           }
@@ -271,7 +270,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         if (isWinner && bond['isWinner'] != true) {
           anyUpdates = true;
 
-          debugPrint('✅ Updating bond $bondNumber as winner with prize: $prizeType');
+          debugPrint('Updating bond $bondNumber as winner: $prizeType');
 
           // Update bond in Firestore
           await _firestore
@@ -291,7 +290,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
 
           // Send notification
           await NotificationService.showNotification(
-            title: '🎉 Congratulations! Your bond won!',
+            title: 'Congratulations! Your bond won!',
             body: 'Bond #$bondNumber won $prizeType in ${drawData['drawNumber']}',
           );
 
@@ -301,7 +300,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
               .doc(user.uid)
               .collection('user_notifications')
               .add({
-            'title': '🎉 Bond Prize Winner!',
+            'title': 'Bond Prize Winner!',
             'body': 'Your bond #$bondNumber won $prizeType in ${drawData['drawNumber']}',
             'type': 'WINNING_BOND',
             'bondNumber': bondNumber,
@@ -312,9 +311,9 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
             'createdAt': FieldValue.serverTimestamp(),
           });
         } else if (isWinner) {
-          debugPrint('ℹ️ Bond $bondNumber already marked as winner');
+          debugPrint('Bond $bondNumber already marked as winner');
         } else {
-          debugPrint('❌ Bond $bondNumber is not a winner in this draw');
+          debugPrint('Bond $bondNumber is not a winner in this draw');
         }
       }
 
@@ -335,7 +334,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
       }
 
     } catch (e) {
-      debugPrint('❌ Error checking draw results: $e');
+      debugPrint('Error checking draw results: $e');
     }
   }
 
@@ -361,11 +360,11 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
     try {
       final user = _auth.currentUser;
       if (user == null) {
-        debugPrint('❌ User is null, cannot load bonds');
+        debugPrint('User is null, cannot load bonds');
         return;
       }
 
-      debugPrint('🔄 Loading bonds for user: ${user.uid}');
+      debugPrint('Loading bonds for user: ${user.uid}');
 
       setState(() {
         _isLoading = true;
@@ -378,16 +377,16 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
           .orderBy('savedAt', descending: true)
           .get();
 
-      debugPrint('✅ Loaded ${snapshot.docs.length} bonds from Firestore');
+      debugPrint('Loaded ${snapshot.docs.length} bonds from Firestore');
 
       if (snapshot.docs.isEmpty) {
-        debugPrint('⚠️ No bonds found in Firestore');
+        debugPrint('No bonds found in Firestore');
       }
 
       _myBonds = [];
       for (var doc in snapshot.docs) {
         final data = doc.data();
-        debugPrint('📄 Bond: ${data['bondNumber']}, Denomination: ${data['denomination']}, isWinner: ${data['isWinner']}');
+        debugPrint('Bond: ${data['bondNumber']}, isWinner: ${data['isWinner']}');
         _myBonds.add({
           'id': doc.id,
           ...data,
@@ -398,7 +397,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
       _calculateStats();
 
     } catch (e) {
-      debugPrint('❌ Error loading bonds: $e');
+      debugPrint('Error loading bonds: $e');
     } finally {
       if (mounted) {
         setState(() {
@@ -430,7 +429,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
     return _myBonds;
   }
 
-  // ✅ NEW: MANUAL BOND ADD FUNCTION
   void _addNewBond() {
     TextEditingController bondNumberController = TextEditingController();
     String selectedDenomination = '200';
@@ -968,7 +966,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
               _buildDetailRow('Saved Date', DateFormat('dd MMM yyyy').format(
                 (bond['savedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
               )),
-              _buildDetailRow('Status', bond['isWinner'] == true ? 'Winner 🎉' : 'Not Winning'),
+              _buildDetailRow('Status', bond['isWinner'] == true ? 'Winner' : 'Not Winning'),
 
               if (bond['isWinner'] == true) ...[
                 const SizedBox(height: 12),
@@ -1030,7 +1028,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
 
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('Congratulations! This bond is a winner! 🎉'),
+            content: Text('Congratulations! This bond is a winner!'),
             backgroundColor: Colors.green,
           ),
         );

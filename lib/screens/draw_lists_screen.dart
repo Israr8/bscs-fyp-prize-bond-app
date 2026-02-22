@@ -796,7 +796,6 @@ class _DrawListsScreenState extends State<DrawListsScreen> {
     });
   }
 
-  // ✅ FIXED: Permission handling with better error messages
   Future<void> _downloadDrawList() async {
     setState(() {
       _isDownloading = true;
@@ -907,7 +906,6 @@ Generated on: ${DateTime.now().toString()}
     }
   }
 
-  // ✅ FIXED: Share functionality
   Future<void> _shareDrawList() async {
     setState(() {
       _isSharing = true;
@@ -925,7 +923,7 @@ Generated on: ${DateTime.now().toString()}
 
       // Create content for sharing
       String content = '''
-🏆 PAKBOND DRAW LIST 🏆
+PAKBOND DRAW LIST
 ========================
 
 Denomination: $_selectedDenomination
@@ -950,7 +948,7 @@ Shared via Pakbond App
       // Share the file
       await Share.shareFiles(
         [filePath],
-        text: '🏆 Pakbond Draw List 🏆\n'
+        text: 'Pakbond Draw List\n'
             '${_selectedDenomination} - Draw $_selectedDrawNumber\n'
             'Winning Numbers: ${_winningNumbers.join(', ')}',
         subject: 'Pakbond Draw List - ${_selectedDenomination} Draw $_selectedDrawNumber',
@@ -962,7 +960,7 @@ Shared via Pakbond App
       // Fallback: Share text only if file sharing fails
       try {
         String shareText = '''
-🏆 PAKBOND DRAW LIST 🏆
+PAKBOND DRAW LIST
 
 ${_selectedDenomination} - Draw $_selectedDrawNumber
 Date: ${_formatDate(_drawDetails!['drawDate'])}
@@ -1002,13 +1000,13 @@ Download Pakbond App for more details!
     final thirdPrize = _drawDetails!['thirdPrize'];
 
     if (firstPrize is Map<String, dynamic>) {
-      info += '🎖 First Prize: ${firstPrize['value']} (Count: ${firstPrize['count']})\n';
+      info += 'First Prize: ${firstPrize['value']} (Count: ${firstPrize['count']})\n';
     }
     if (secondPrize is Map<String, dynamic>) {
-      info += '🥈 Second Prize: ${secondPrize['value']} (Count: ${secondPrize['count']})\n';
+      info += 'Second Prize: ${secondPrize['value']} (Count: ${secondPrize['count']})\n';
     }
     if (thirdPrize is Map<String, dynamic>) {
-      info += '🥉 Third Prize: ${thirdPrize['value']} (Count: ${thirdPrize['count']})\n';
+      info += 'Third Prize: ${thirdPrize['value']} (Count: ${thirdPrize['count']})\n';
     }
 
     return info.isEmpty ? 'No prize information available' : info;

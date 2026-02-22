@@ -35,10 +35,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
+    // Use post frame callback to avoid ScaffoldMessenger error
   @override
   void initState() {
     super.initState();
-    // Use post frame callback to avoid ScaffoldMessenger error
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _loadUserData();
     });
@@ -52,7 +52,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
-  // ✅ FIXED: Added mounted checks everywhere
   Future<void> _loadUserData() async {
     if (!mounted) return;
 
@@ -69,14 +68,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _isLoading = false;
           });
         }
+      // Load user document from Firestore
         return;
       }
 
-      // Load user document from Firestore
+        // Create user document if doesn't exist
       final userDoc = await _firestore.collection('users').doc(_user!.uid).get();
 
       if (!userDoc.exists) {
-        // Create user document if doesn't exist
         await _firestore.collection('users').doc(_user!.uid).set({
           'uid': _user!.uid,
           'email': _user!.email ?? '',
@@ -101,10 +100,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _userData = {};
         }
       }
+      // Set controller values with null safety
 
       if (!mounted) return;
 
-      // Set controller values with null safety
       _nameController.text = _userData['name']?.toString() ??
           _user!.displayName ??
           _user!.email?.split('@').first ??
@@ -115,7 +114,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _profileImageUrl = _userData['profileImage']?.toString();
 
     } catch (e) {
-      debugPrint('❌ Error loading user data: $e');
+      debugPrint('Error loading user data: $e');
 
       _userData = {};
       _nameController.text = _user?.displayName ?? _user?.email?.split('@').first ?? 'User';
@@ -140,7 +139,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // ✅ FIXED: Image upload with proper error handling
   Future<void> _uploadProfileImage() async {
     try {
       final XFile? image = await _picker.pickImage(
@@ -170,17 +168,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
         }
+      // Upload to Firebase Storage
         return;
       }
 
-      // Upload to Firebase Storage
+      // Show uploading progress
       final fileName = 'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final reference = _storage.ref().child('profile_images/$fileName');
+      // Optional: Show progress
 
-      // Show uploading progress
       final uploadTask = reference.putFile(_profileImage!);
 
-      // Optional: Show progress
       uploadTask.snapshotEvents.listen((snapshot) {
         double progress = snapshot.bytesTransferred / snapshot.totalBytes;
         debugPrint('Upload progress: $progress');
@@ -189,10 +187,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await uploadTask;
 
       if (!mounted) return;
+      // Update Firestore
 
       final downloadUrl = await reference.getDownloadURL();
 
-      // Update Firestore
       await _firestore.collection('users').doc(user.uid).update({
         'profileImage': downloadUrl,
         'updatedAt': FieldValue.serverTimestamp(),
@@ -213,7 +211,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
     } catch (e) {
-      debugPrint('❌ Error uploading image: $e');
+      debugPrint('Error uploading image: $e');
       if (!mounted) return;
 
       setState(() {
@@ -229,7 +227,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  // ✅ FIXED: Profile update with mounted checks
   Future<void> _updateProfile() async {
     if (!mounted) return;
 
@@ -282,7 +279,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await _loadUserData();
 
     } on FirebaseException catch (e) {
-      debugPrint('❌ Firebase error updating profile: $e');
+      debugPrint('Firebase error updating profile: $e');
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -295,7 +292,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isUpdating = false;
       });
     } catch (e) {
-      debugPrint('❌ Error updating profile: $e');
+      debugPrint('Error updating profile: $e');
       if (!mounted) return;
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -308,11 +305,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isUpdating = false;
       });
     }
+    // Show loading dialog
   }
 
-  // ✅ FIXED: Logout with loading indicator
   Future<void> _logout() async {
-    // Show loading dialog
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -323,14 +319,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       },
     );
 
+      // Dialog will auto-close when screen changes
     try {
       await _auth.signOut();
-      debugPrint('✅ Logout successful');
-      // Dialog will auto-close when screen changes
-    } catch (e) {
-      debugPrint('❌ Logout error: $e');
-
+      debugPrint('Logout successful');
       // Close loading dialog
+    } catch (e) {
+      debugPrint(' Logout error: $e');
+
       if (mounted) {
         Navigator.pop(context);
 
@@ -380,7 +376,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  // ✅ REST OF YOUR WIDGET METHODS (unchanged but with mounted checks)
   Widget _buildProfileHeader() {
     return Column(
       children: [
@@ -761,10 +756,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildHelpItem(String title, IconData icon) {
     return ListTile(
       leading: Icon(icon, color: Colors.grey[600]),
+        // Handle tap
       title: Text(title),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: () {
-        // Handle tap
       },
     );
   }

@@ -34,9 +34,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   // login_screen.dart me _login function update karein
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return; // Form valid hai ya nahi check kar rahe
+    if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true); // Spinner
+    setState(() => _isLoading = true);
 
     try {
       // Firebase se login karna
@@ -55,16 +55,16 @@ class _LoginScreenState extends State<LoginScreen> {
           .get();
 
       if (!userDoc.exists) {
-        await FirebaseAuth.instance.signOut(); // Agar user doc ni mila to logout
+        await FirebaseAuth.instance.signOut();
         throw Exception('User data not found');
       }
 
       final data = userDoc.data() as Map<String, dynamic>;
       final userType = data['userType'] ?? 'normal';
+      // Update last login
       final isApproved = data['isApproved'] ?? false;
       final status = data['status'] ?? 'pending';
 
-      // Update last login
       await FirebaseFirestore.instance.collection('users').doc(userId).update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
@@ -190,10 +190,10 @@ class _LoginScreenState extends State<LoginScreen> {
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
+                // Logo/Title
               children: [
                 const SizedBox(height: 40),
 
-                // Logo/Title
                 Container(
                   width: 100,
                   height: 100,
@@ -228,10 +228,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     color: Colors.black,
                   ),
                 ),
+                // Email Field
 
                 const SizedBox(height: 40),
 
-                // Email Field
                 TextFormField(
                   controller: _userEmail,
                   decoration: InputDecoration(
@@ -252,10 +252,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     return null;
                   },
                 ),
+                // Password Field
 
                 const SizedBox(height: 16),
 
-                // Password Field
                 TextFormField(
                   controller: _passwordController,
                   decoration: InputDecoration(
@@ -294,9 +294,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton(
-                    onPressed: () {
-                      // Forgot password
-                    },
+                    onPressed: () {},
                     child: Text(
                       'Forgot Password?',
                       style: GoogleFonts.inter(
@@ -305,10 +303,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+                // Login Button
 
                 const SizedBox(height: 24),
 
-                // Login Button
                 SizedBox(
                   width: double.infinity,  //screen ki jitni width hogi otnni ho jayegi
                   height: 56,
@@ -339,10 +337,10 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ),
                 ),
+                // Divider
 
                 const SizedBox(height: 24),
 
-                // Divider
                 Row(
                   children: [
                     Expanded(
@@ -362,38 +360,38 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                   ],
                 ),
+                // Social Login
 
                 const SizedBox(height: 24),
 
-                // Social Login
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     _buildSocialButton(
                       Icons.facebook,
+                        // Facebook login
                       'Facebook',
                       Colors.blueAccent,
                       onPressed: () {
-                        // Facebook login
                       },
                     ),
                     const SizedBox(width: 16),
                     _buildSocialButton(
                       Icons.g_mobiledata,
+                        // Google login
                       'Google',
                       Colors.red,
                       onPressed: () {
-                        // Google login
                       },
                     ),
                     const SizedBox(width: 16),
                     _buildGuestButton(), // Updated Guest Button
                   ],
                 ),
+                // Register Link
 
                 const SizedBox(height: 32),
 
-                // Register Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

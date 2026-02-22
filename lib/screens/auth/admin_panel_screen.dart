@@ -159,23 +159,23 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ],
       ),
     );
+        // Get user data
 
     if (shouldReset == true) {
       try {
-        // Get user data
         final userDoc = await _firestore.collection('users').doc(userId).get();
         final userData = userDoc.data() as Map<String, dynamic>;
+        // Reset PIN in Firestore
         final userEmail = userData['email'];
         final userName = '${userData['firstName']} ${userData['lastName']}';
 
-        // Reset PIN in Firestore
         const defaultPinHash = '9af15b336e6a961992b6c68d6e0b7cbb3c8c9e3c5f4d3b5f0e6d8e9a7b6c5d4';
         // firestore me pin update kar rahe hain
         await _firestore.collection('users').doc(userId).update({
+        // Send PIN reset email
           'pin': defaultPinHash,
         });
 
-        // Send PIN reset email
         final emailSent = await EmailService.sendPinResetEmail(
           toEmail: userEmail,
           userName: userName,
@@ -213,10 +213,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Padding(
         padding: const EdgeInsets.all(16),
+            // User Header with Status
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // User Header with Status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
@@ -260,10 +260,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
+            // User Details in Row
 
             const SizedBox(height: 12),
 
-            // User Details in Row
             Row(
               children: [
                 Expanded(
@@ -305,10 +305,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
+            // Address
 
             const SizedBox(height: 8),
 
-            // Address
             Row(
               children: [
                 const Icon(Icons.home, size: 14, color: Colors.grey),
@@ -325,10 +325,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
+            // Registration Date
 
             const SizedBox(height: 12),
 
-            // Registration Date
             Row(
               children: [
                 const Icon(Icons.calendar_today, size: 14, color: Colors.grey),
@@ -342,12 +342,12 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
+            // Action Buttons based on status
 
             const SizedBox(height: 16),
-
-            // Action Buttons based on status
-            if (user.status == 'pending') ...[
               // Pending Users - Approve/Reject
+
+            if (user.status == 'pending') ...[
               Row(
                 children: [
                   Expanded(
@@ -381,10 +381,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       label: const Text('Reject'),
                     ),
                   ),
+              // Approved Users - PIN Reset
                 ],
               ),
             ] else if (user.status == 'approved') ...[
-              // Approved Users - PIN Reset
               Row(
                 children: [
                   Expanded(
@@ -418,10 +418,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       label: const Text('Deactivate'),
                     ),
                   ),
+              // Rejected Users - Approve
                 ],
               ),
             ] else if (user.status == 'rejected') ...[
-              // Rejected Users - Approve
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -476,10 +476,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         return _pendingUsers;
     }
   }
+      // Show confirmation dialog
 // admin logout function
   Future<void> _logout() async {
     try {
-      // Show confirmation dialog
       final shouldLogout = await showDialog<bool>(
         context: context,
         builder: (context) => AlertDialog(
@@ -497,15 +497,15 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ],
         ),
       );
+      // Show loading indicator
 
       if (shouldLogout != true) return;
 
-      // Show loading indicator
       setState(() {
+      // Get AuthService instance
         _isLoading = true;
       });
 
-      // Get AuthService instance
       final authService = Provider.of<AuthService>(context, listen: false);
 
       // auth service file me funtion add ha whan  se sign out kar rahe hain
@@ -553,10 +553,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             tooltip: 'Logout',
           ),
         ],
+          // Filter Tabs
       ),
       body: Column(
         children: [
-          // Filter Tabs
           Container(
             color: Colors.white,
             child: Row(
@@ -568,10 +568,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               ],
             ),
           ),
+          // Users List
 
           const Divider(height: 1),
 
-          // Users List
           Expanded(
             child: _isLoading
                 ? const Center(child: CircularProgressIndicator())

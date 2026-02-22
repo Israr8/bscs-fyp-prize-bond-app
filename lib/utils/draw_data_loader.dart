@@ -5,10 +5,10 @@ import 'package:intl/intl.dart';
 class DrawDataLoader {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
+        // Rs. 200 Prize Bonds - March 2024
   Future<void> load2024DrawResults() async {
     try {
       final draws2024 = [
-        // Rs. 200 Prize Bonds - March 2024
         {
           'drawNumber': '101',
           'drawDate': Timestamp.fromDate(DateTime(2024, 3, 15)),
@@ -26,10 +26,10 @@ class DrawDataLoader {
           },
           'status': 'completed',
           'verified': true,
+        // Rs. 200 Prize Bonds - June 2024
           'addedAt': FieldValue.serverTimestamp(),
         },
 
-        // Rs. 200 Prize Bonds - June 2024
         {
           'drawNumber': '102',
           'drawDate': Timestamp.fromDate(DateTime(2024, 6, 15)),
@@ -47,10 +47,10 @@ class DrawDataLoader {
           },
           'status': 'completed',
           'verified': true,
+        // Rs. 750 Prize Bonds - March 2024
           'addedAt': FieldValue.serverTimestamp(),
         },
 
-        // Rs. 750 Prize Bonds - March 2024
         {
           'drawNumber': '103',
           'drawDate': Timestamp.fromDate(DateTime(2024, 3, 15)),
@@ -68,10 +68,10 @@ class DrawDataLoader {
           },
           'status': 'completed',
           'verified': true,
+        // Rs. 1500 Prize Bonds - June 2024
           'addedAt': FieldValue.serverTimestamp(),
         },
 
-        // Rs. 1500 Prize Bonds - June 2024
         {
           'drawNumber': '104',
           'drawDate': Timestamp.fromDate(DateTime(2024, 6, 15)),
@@ -89,10 +89,10 @@ class DrawDataLoader {
           },
           'status': 'completed',
           'verified': true,
+        // Rs. 7500 Prize Bonds - September 2024
           'addedAt': FieldValue.serverTimestamp(),
         },
 
-        // Rs. 7500 Prize Bonds - September 2024
         {
           'drawNumber': '105',
           'drawDate': Timestamp.fromDate(DateTime(2024, 9, 15)),
@@ -118,16 +118,16 @@ class DrawDataLoader {
         await _firestore.collection('draws').add(draw);
       }
 
-      print('✅ Loaded ${draws2024.length} draw results for 2024');
+      print('Loaded ${draws2024.length} draw results for 2024');
     } catch (e) {
-      print('❌ Error loading draw results: $e');
+      print('Error loading draw results: $e');
       rethrow;
     }
   }
+      // Add 2023, 2022 draws here
 
   Future<void> loadHistoricalDraws() async {
       final historicalDraws = [
-      // Add 2023, 2022 draws here
     ];
 
     for (var draw in historicalDraws) {

@@ -52,10 +52,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 
 
+    // Validate password match
   Future<void> registerUser() async {
     if (!formKey.currentState!.validate()) return;
 
-    // Validate password match
     if (password.text != confirmpassword.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -63,10 +63,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    // Validate PIN match
       return;
     }
 
-    // Validate PIN match
     if (pin.text != confirmPin.text) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -74,10 +74,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: Colors.red,
         ),
       );
+    // Validate PIN is 4 digits
       return;
     }
 
-    // Validate PIN is 4 digits
     if (pin.text.length != 4 || !RegExp(r'^\d{4}$').hasMatch(pin.text)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -100,10 +100,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
         pin: pin.text.trim(),
         address: address.text.trim(),
         city: city.text.trim(),
+      // Auto logout after registration
         userType: _userType,
       );
 
-      // Auto logout after registration
       await FirebaseAuth.instance.signOut();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -113,10 +113,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 5),
+      // Navigate to login screen
         ),
       );
 
-      // Navigate to login screen
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(builder: (_) => const LoginScreen()),
@@ -147,14 +147,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
           padding: const EdgeInsets.all(16),
           child: Form(
             key: formKey,
+                // Personal Information
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Personal Information
+                // First Name & Last Name Row
                 _buildSectionHeader('Personal Information'),
                 const SizedBox(height: 12),
 
-                // First Name & Last Name Row
                 Row(
                   children: [
                     Expanded(
@@ -195,10 +195,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
+                // Email Field
 
                 const SizedBox(height: 16),
 
-                // Email Field
                 TextFormField(
                   controller: email,
                   decoration: InputDecoration(
@@ -219,10 +219,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+                // Mobile No Field
 
                 const SizedBox(height: 16),
 
-                // Mobile No Field
                 TextFormField(
                   controller: mobile,
                   decoration: InputDecoration(
@@ -241,14 +241,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'Please enter valid mobile number';
                     }
                     return null;
+                // Security Section
                   },
                 ),
 
-                // Security Section
+                // Password Field
                 _buildSectionHeader('Security'),
                 const SizedBox(height: 12),
 
-                // Password Field
                 TextFormField(
                   controller: password,
                   decoration: InputDecoration(
@@ -281,10 +281,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+                // Confirm Password Field
 
                 const SizedBox(height: 16),
 
-                // Confirm Password Field
                 TextFormField(
                   controller: confirmpassword,
                   decoration: InputDecoration(
@@ -317,10 +317,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+                // PIN Field
 
                 const SizedBox(height: 16),
 
-                // PIN Field
                 TextFormField(
                   controller: pin,
                   decoration: InputDecoration(
@@ -353,10 +353,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+                // Confirm PIN Field
 
                 const SizedBox(height: 16),
 
-                // Confirm PIN Field
                 TextFormField(
                   controller: confirmPin,
                   decoration: InputDecoration(
@@ -389,14 +389,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'PINs do not match';
                     }
                     return null;
+                // Address Section
                   },
                 ),
 
-                // Address Section
+                // Address Field
                 _buildSectionHeader('Address'),
                 const SizedBox(height: 12),
 
-                // Address Field
                 TextFormField(
                   controller: address,
                   decoration: InputDecoration(
@@ -414,10 +414,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     return null;
                   },
                 ),
+                // City Field
 
                 const SizedBox(height: 16),
 
-                // City Field
                 TextFormField(
                   controller: city,
                   decoration: InputDecoration(
@@ -432,14 +432,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'Please enter city';
                     }
                     return null;
+                // User Type Section
                   },
                 ),
 
-                // User Type Section
+                // User Type Radio Buttons
                 _buildSectionHeader('User Type'),
                 const SizedBox(height: 12),
 
-                // User Type Radio Buttons
                 Row(
                   children: [
                     Expanded(
@@ -468,10 +468,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
+                // Terms Checkbox
 
                 const SizedBox(height: 24),
 
-                // Terms Checkbox
                 Row(
                   children: [
                     Checkbox(
@@ -505,10 +505,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ],
                 ),
+                // Register Button
 
                 const SizedBox(height: 32),
 
-                // Register Button
                 SizedBox(
                   width: double.infinity,
                   height: 56,
@@ -539,10 +539,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                   ),
                 ),
+                // Login Link
 
                 const SizedBox(height: 24),
 
-                // Login Link
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [

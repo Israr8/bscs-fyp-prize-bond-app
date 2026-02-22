@@ -15,22 +15,15 @@ class AuthService extends ChangeNotifier {
 
   bool _isRegistering = false;
 
-  // Hash PIN function
   String _hashPin(String pin) {
-    // Trim and validate PIN
     final cleanPin = pin.trim();
-    debugPrint('🔐 Hashing PIN: "$cleanPin"');
     final hash = sha256.convert(utf8.encode(cleanPin)).toString();
-    debugPrint('🔐 Hash result: "$hash"');
     return hash;
   }
 
   AuthService() {
     _auth.authStateChanges().listen((User? user) async {
-      if (_isRegistering) {
-        debugPrint('⚠️ Skipping auth listener during registration');
-        return;
-      }
+      if (_isRegistering) return;
 
       if (user != null) {
         try {
@@ -58,9 +51,9 @@ class AuthService extends ChangeNotifier {
         // If user is admin, skip approval check
         if (userType == 'admin') {
           // Load admin user data
-          _user = UserModel.fromFirestore(data);
 
           // Update last login for admin
+          _user = UserModel.fromFirestore(data);
           await _firestore.collection('users').doc(uid).update({
             'lastLogin': FieldValue.serverTimestamp(),
           });
@@ -82,9 +75,9 @@ class AuthService extends ChangeNotifier {
 
         // Load normal user data
         _user = UserModel.fromFirestore(data);
+        await _firestore.collection('users').doc(uid).update({
 
         // Update last login
-        await _firestore.collection('users').doc(uid).update({
           'lastLogin': FieldValue.serverTimestamp(),
         });
       } else {
@@ -116,29 +109,21 @@ class AuthService extends ChangeNotifier {
     _isRegistering = true;
 
     try {
-      debugPrint('🔄 Step 1: Creating Firebase Auth user...');
       final String pinToStore;
       // Check kro Pin already hash to ni ha
       if (pin.length == 64 && RegExp(r'^[a-f0-9]{64}$').hasMatch(pin)) {
-        // Ye already hashed hai - directly store karo
         pinToStore = pin;
-        debugPrint('🔐 PIN already hashed: "$pinToStore"');
       } else {
-        // Pin plain text ha esko hash krna ha yahan pr
         pinToStore = _hashPin(pin);
-        debugPrint('🔐 Hashing plain PIN: "$pin" -> "$pinToStore"');
       }
 
-      // Create Firebase Auth user
       final UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
       );
 
       final userId = userCredential.user!.uid;
-      debugPrint('✅ Firebase Auth user created: $userId');
 
-      // Prepare user data - use pinToStore
       final userData = {
         'uid': userId,
         'email': email.trim(),
@@ -161,27 +146,15 @@ class AuthService extends ChangeNotifier {
         'status': userType == 'admin' ? 'approved' : 'pending',
       };
 
-      debugPrint('📤 Storing PIN hash: "$pinToStore"');
-
-      // Save to Firestore
       await _firestore.collection('users').doc(userId).set(userData, SetOptions(merge: true));
 
-      // Verify
-      final savedDoc = await _firestore.collection('users').doc(userId).get();
-      final savedData = savedDoc.data();
-      debugPrint('✅ VERIFICATION - Stored PIN hash: "${savedData?['pin']}"');
-
-      // Auto logout
       await Future.delayed(const Duration(milliseconds: 500));
       await _auth.signOut();
-      debugPrint('✅ User logged out after registration');
 
       _user = null;
       notifyListeners();
-
-      debugPrint('🎉 Registration completed successfully');
     } catch (e) {
-      debugPrint('💥 Registration Error: $e');
+      debugPrint('Registration error: $e');
       try {
         await _auth.signOut();
       } catch (_) {}
@@ -191,49 +164,27 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-// verifyPin function
   Future<bool> verifyPin(String pin) async {
     try {
       final user = _auth.currentUser;
-      if (user == null) {
-        debugPrint('❌ verifyPin: No user logged in');
-        return false;
-      }
-
-      debugPrint('🔍 verifyPin: User UID = ${user.uid}');
-      debugPrint('🔍 verifyPin: Entered PIN = "$pin"');
+      if (user == null) return false;
 
       final doc = await _firestore.collection('users').doc(user.uid).get();
-      if (!doc.exists) {
-        debugPrint('❌ verifyPin: User document not found');
-        return false;
-      }
+      if (!doc.exists) return false;
 
       final data = doc.data() as Map<String, dynamic>;
       final storedPin = data['pin'] ?? '';
 
       // Check if stored PIN is already hashed
       final String enteredPinHash;
-
       if (storedPin.length == 64 && RegExp(r'^[a-f0-9]{64}$').hasMatch(storedPin)) {
-        // Stored PIN is hashed - hash the entered PIN
         enteredPinHash = _hashPin(pin);
-        debugPrint('🔑 Entered PIN hashed: "$enteredPinHash"');
       } else {
-        // Stored PIN is plain text - compare directly
         enteredPinHash = pin;
-        debugPrint('⚠️ Stored PIN is plain text!');
       }
-
-      debugPrint('💾 Stored PIN: "$storedPin"');
-      debugPrint('🔑 Entered PIN hash: "$enteredPinHash"');
-
-      final isValid = storedPin == enteredPinHash;
-      debugPrint('✅ Match: $isValid');
-
-      return isValid;
+      return storedPin == enteredPinHash;
     } catch (e) {
-      debugPrint('❌ PIN verification error: $e');
+      debugPrint('PIN verify error: $e');
       return false;
     }
   }
@@ -358,12 +309,12 @@ class AuthService extends ChangeNotifier {
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final userData = userDoc.data() as Map<String, dynamic>;
       final userEmail = userData['email'];
-      final userName = '${userData['firstName']} ${userData['lastName']}';
 
       // Send approval email notification
-      await _sendApprovalEmail(userEmail, userName, status);
+      final userName = '${userData['firstName']} ${userData['lastName']}';
 
-      debugPrint('✅ User status updated to: $status');
+      debugPrint('User status updated to: $status');
+      await _sendApprovalEmail(userEmail, userName, status);
     } catch (e) {
       debugPrint('Error updating user status: $e');
       rethrow;
@@ -371,20 +322,16 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> _sendApprovalEmail(String email, String name, String status) async {
-    // Implement email sending logic here
-    debugPrint('📧 Approval email would be sent to: $email');
-    debugPrint('Subject: Your account has been $status');
+    debugPrint('Approval email to: $email');
   }
 
   Future<void> signOut() async {
     try {
-      debugPrint('🚪 Signing out...');
       await _auth.signOut();
       _user = null;
       notifyListeners();
-      debugPrint('✅ Sign out successful');
     } catch (e) {
-      debugPrint('❌ Sign out error: $e');
+      debugPrint('Sign out error: $e');
       throw Exception('Logout failed: $e');
     }
   }
@@ -418,10 +365,9 @@ class AuthService extends ChangeNotifier {
 
       // Reload user data
       await _loadUserData(user.uid);
-
-      debugPrint('✅ Profile updated successfully');
+      debugPrint('Profile updated');
     } catch (e) {
-      debugPrint('❌ Profile update error: $e');
+      debugPrint('Profile update error: $e');
       rethrow;
     }
   }
@@ -430,23 +376,18 @@ class AuthService extends ChangeNotifier {
   Future<void> changePin(String oldPin, String newPin) async {
     try {
       final user = _auth.currentUser;
-      if (user == null) throw Exception('No user logged in');
 
       // Verify old PIN
+      if (user == null) throw Exception('No user logged in');
       final isVerified = await verifyPin(oldPin);
-      if (!isVerified) {
-        throw Exception('Old PIN is incorrect');
-      }
-
-      // Update to new PIN
+      if (!isVerified) throw Exception('Old PIN is incorrect');
       final cleanNewPin = newPin.trim();
       await _firestore.collection('users').doc(user.uid).update({
         'pin': _hashPin(cleanNewPin),
       });
-
-      debugPrint('✅ PIN changed successfully');
+      debugPrint('PIN changed');
     } catch (e) {
-      debugPrint('❌ PIN change error: $e');
+      debugPrint('PIN change error: $e');
       rethrow;
     }
   }

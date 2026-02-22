@@ -1,10 +1,8 @@
-// lib/screens/notifications_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app/services/notification_service.dart';
 import 'package:app/utils/constants.dart';
-import 'package:app/screens/admin/admin_draws_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
@@ -145,21 +143,11 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
               );
             },
           ),
-          // Admin icon (hidden from regular users)
           if (_isAdmin)
             PopupMenuButton<String>(
               icon: const Icon(Icons.admin_panel_settings),
               onSelected: (value) {
-                if (value == 'send_test') {
-                  _sendTestNotification();
-                } else if (value == 'admin_panel') {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const AdminDrawsScreen(),
-                    ),
-                  );
-                }
+                if (value == 'send_test') _sendTestNotification();
               },
               itemBuilder: (context) => [
                 const PopupMenuItem(
@@ -172,16 +160,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     ],
                   ),
                 ),
-                const PopupMenuItem(
-                  value: 'admin_panel',
-                  child: Row(
-                    children: [
-                      Icon(Icons.settings, size: 20),
-                      SizedBox(width: 8),
-                      Text('Admin Panel'),
-                    ],
-                  ),
-                ),
               ],
             ),
         ],
@@ -190,9 +168,19 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         valueListenable: NotificationService.notificationsList,
         builder: (context, notifications, child) {
           if (notifications.isEmpty) {
-            return _buildEmptyState();
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.notifications_off_outlined, size: 80, color: Colors.grey[300]),
+                  const SizedBox(height: 16),
+                  Text('No notifications', style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w500, color: Colors.grey)),
+                  const SizedBox(height: 8),
+                  Text('New notifications will appear here', style: GoogleFonts.inter(color: Colors.grey)),
+                ],
+              ),
+            );
           }
-
           return ListView.builder(
             padding: const EdgeInsets.only(top: 8),
             itemCount: notifications.length,
@@ -203,14 +191,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
           );
         },
       ),
-      // ✅ Only show FAB for admin
-      floatingActionButton: _isAdmin
-          ? FloatingActionButton(
-        onPressed: _sendTestNotification,
-        backgroundColor: Colors.orange,
-        child: const Icon(Icons.notification_add, color: Colors.white),
-      )
-          : null,
     );
   }
 
@@ -295,46 +275,6 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             NotificationService.markAsRead(notificationId);
           },
         ),
-      ),
-    );
-  }
-
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.notifications_off_outlined,
-            size: 80,
-            color: Colors.grey[300],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            'No notifications',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w500,
-              color: Colors.grey,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'New notifications will appear here',
-            style: GoogleFonts.inter(
-              color: Colors.grey,
-            ),
-          ),
-          // ✅ Only show test button for admin
-          if (_isAdmin) ...[
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              onPressed: _sendTestNotification,
-              icon: const Icon(Icons.notification_add),
-              label: const Text('Send Test Notification'),
-            ),
-          ],
-        ],
       ),
     );
   }

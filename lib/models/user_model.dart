@@ -98,12 +98,12 @@ class UserModel {
       'isApproved': isApproved,
       'isActive': isActive,
       'status': status,
+  // Helper method to check if user is admin
     };
   }
 
-  // Helper method to check if user is admin
-  bool get isAdmin => userType == 'admin';
-
   // Helper method to check if registration is approved
+
+  bool get isAdmin => userType == 'admin';
   bool get canLogin => isApproved && isActive && status == 'approved';
 }

@@ -20,23 +20,23 @@ class DrawResult {
     required this.totalPrizes,
     required this.firstPrize,
     required this.secondPrize,
+  // Factory constructor for Firebase
     required this.thirdPrize,
   });
+    // Helper function to handle prize data
 
-  // Factory constructor for Firebase
   factory DrawResult.fromFirestore(DocumentSnapshot doc) {
     final data = doc.data() as Map<String, dynamic>;
 
-    // Helper function to handle prize data
     String formatPrize(dynamic prize) {
       if (prize == null) return '';
       if (prize is List) {
         return prize.join(', ');
       }
+    // Handle date conversion safely
       return prize.toString();
     }
 
-    // Handle date conversion safely
     DateTime parseDate(dynamic dateData) {
       try {
         if (dateData is Timestamp) {

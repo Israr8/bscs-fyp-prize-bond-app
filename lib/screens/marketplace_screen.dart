@@ -5,7 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app/utils/constants.dart';
 import 'package:app/widgets/post_item_sheet.dart';
-import 'package:app/models/market_item.dart'; // ✅ Import model
+import 'package:app/models/market_item.dart';
 
 class MarketplaceScreen extends StatefulWidget {
   const MarketplaceScreen({super.key});
@@ -180,7 +180,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       isScrollControlled: true,
       builder: (context) => PostItemSheet(
         isEdit: true,
-        item: item, // ✅ Ab error nahi ayega
+        item: item, // Ab error nahi ayega
         onPost: (bondNumber, denomination, askingPrice, description, location) async {
           try {
             await _firestore.collection('marketplace').doc(item.id).update({

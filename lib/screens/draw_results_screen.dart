@@ -342,7 +342,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(
-          winningBonds.length == 1 ? '🎉 Congratulations!' : '🏆 Multiple Winners Found!',
+          winningBonds.length == 1 ? 'Congratulations!' : 'Multiple Winners Found!',
           style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold),
         ),
         content: SingleChildScrollView(
@@ -379,7 +379,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
                       Row(
                         children: [
                           Text(
-                            '🏆 $prizeType',
+                            '$prizeType',
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.bold,
@@ -1153,13 +1153,13 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    '🏆 First Prize: ${data['firstPrize'] ?? 'N/A'}',
+                    'First Prize: ${data['firstPrize'] ?? 'N/A'}',
                     style: GoogleFonts.inter(fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 6),
                   if (secondPrizes.isNotEmpty)
                     Text(
-                      '🥈 Second Prize (${secondPrizes.length}): ${secondPrizes.take(2).join(', ')}${secondPrizes.length > 2 ? '...' : ''}',
+                      'Second Prize (${secondPrizes.length}): ${secondPrizes.take(2).join(', ')}${secondPrizes.length > 2 ? '...' : ''}',
                       style: GoogleFonts.inter(),
                     ),
                 ],
@@ -1249,12 +1249,12 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildPrizeSection(
-                      '🏆 First Prize (1 Winner)',
+                      'First Prize (1 Winner)',
                       [data['firstPrize'] ?? 'N/A'],
                     ),
                     const SizedBox(height: 20),
                     _buildPrizeSection(
-                      '🥈 Second Prize (${secondPrizes.length} Winners)',
+                      'Second Prize (${secondPrizes.length} Winners)',
                       secondPrizes,
                     ),
                     const SizedBox(height: 20),
@@ -1315,7 +1315,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
 
   void _shareDrawResults(Map<String, dynamic> data) {
     final shareText =
-        '🏆 Prize Bond Draw Results\n'
+        'Prize Bond Draw Results\n'
         'Draw #${data['drawNumber']}\n'
         'Date: ${_formatDate(data['drawDate'])}\n'
         'City: ${data['city']}\n'

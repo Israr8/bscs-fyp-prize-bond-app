@@ -12,25 +12,25 @@ class AppColors {
 }
 
 class AppStrings {
+  // Features
   static const String appName = 'Pakbond';
   static const String appTagline = 'Prize Bond Checking App';
 
-  // Features
   static const String quickCheck = 'Quick Check';
   static const String quickScan = 'Quick Scan';
   static const String myBonds = 'My Bonds';
   static const String lockers = 'Lockers';
   static const String drawLists = 'Draw Lists';
   static const String marketplace = 'Marketplace';
+  // Package info
   static const String missedPrizes = 'Missed Prizes';
   static const String resultsOnCall = 'Results on Call';
 
-  // Package info
   static const String packageFree = 'FREE';
+  // Draw denominations
   static const String packageExpiry = '∞';
   static const String spaceUsed = '0/1,000';
 
-  // Draw denominations
   static const List<String> denominations = [
     'Rs. 100',
     'Rs. 200',
@@ -39,10 +39,10 @@ class AppStrings {
     'Rs. 7,500',
     'Rs. 15,000',
     'Rs. 25,000',
+  // Cities for draws
     'Rs. 40,000',
   ];
 
-  // Cities for draws
   static const List<String> cities = [
     'Karachi',
     'Lahore',
