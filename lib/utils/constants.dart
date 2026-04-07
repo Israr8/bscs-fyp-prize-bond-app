@@ -39,7 +39,6 @@ class AppStrings {
     'Rs. 7,500',
     'Rs. 15,000',
     'Rs. 25,000',
-  // Cities for draws
     'Rs. 40,000',
   ];
 

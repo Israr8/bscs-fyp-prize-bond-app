@@ -3,6 +3,10 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/screens/auth/register_screen.dart';
 import 'package:app/utils/constants.dart';
+import 'package:app/widgets/custom_card.dart';
+import 'package:app/screens/draw_results_screen.dart';
+import 'package:app/screens/draw_lists_screen.dart';
+import 'package:app/screens/marketplace_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 class GuestHomeScreen extends StatefulWidget {
@@ -17,37 +21,41 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
 
   final List<Widget> _guestScreens = [
     GuestDashboardScreen(),
-    GuestSearchScreen(),
-    GuestScanScreen(),
+    const DrawResultsScreen(), // Search tab = Quick Search
+    const GuestScanRegisterPrompt(),
     GuestMarketplaceScreen(),
     GuestProfileScreen(),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Pakbond - Guest Mode'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.login),
-            onPressed: () {
-              Navigator.pushAndRemoveUntil(
-                context,
-                MaterialPageRoute(builder: (context) => const LoginScreen()),
-                    (route) => false,
-              );
-            },
-            tooltip: 'Login',
-          ),
-        ],
-      ),
+      appBar: _currentIndex == 1
+          ? null
+          : AppBar(
+              title: const Text('Pakbond - Guest Mode'),
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.login),
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginScreen()),
+                      (route) => false,
+                    );
+                  },
+                  tooltip: 'Login',
+                ),
+              ],
+            ),
       body: _guestScreens[_currentIndex],
+      // Search tab (index 1) shows DrawResultsScreen with its own AppBar
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppColors.primaryColor,
-        unselectedItemColor: Colors.grey,
+        selectedItemColor: theme.colorScheme.primary,
+        unselectedItemColor: theme.colorScheme.onSurfaceVariant,
         onTap: (index) {
           setState(() {
             _currentIndex = index;
@@ -65,8 +73,8 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
             label: 'Search',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.camera_alt_outlined),
-            activeIcon: Icon(Icons.camera_alt),
+            icon: const Icon(Icons.confirmation_number_outlined),
+            activeIcon: const Icon(Icons.confirmation_number),
             label: 'Scan',
           ),
           BottomNavigationBarItem(
@@ -151,7 +159,54 @@ class GuestDashboardScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Features Grid
+          // Quick Check & Quick Scan (same as logged-in user)
+          Text(
+            'Quick Search',
+            style: GoogleFonts.inter(
+              fontSize: 18,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          const SizedBox(height: 16),
+          GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
+            children: [
+              CustomCard(
+                title: 'Quick Check',
+                icon: Icons.fact_check_outlined,
+                color: Colors.blue,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DrawResultsScreen(),
+                  ),
+                ),
+              ),
+              CustomCard(
+                title: 'Quick Scan',
+                icon: Icons.qr_code_scanner_rounded,
+                color: Colors.green,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      appBar: AppBar(title: const Text('Scan')),
+                      body: const GuestScanRegisterPrompt(),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 24),
+
+          // Available Features (all tappable, same screens as logged-in)
           Text(
             'Available Features',
             style: GoogleFonts.inter(
@@ -159,39 +214,61 @@ class GuestDashboardScreen extends StatelessWidget {
               fontWeight: FontWeight.w600,
             ),
           ),
-
           const SizedBox(height: 16),
-
           GridView.count(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisCount: 2,
-            crossAxisSpacing: 16,
-            mainAxisSpacing: 16,
+            crossAxisSpacing: 12,
+            mainAxisSpacing: 12,
+            childAspectRatio: 1.2,
             children: [
-              _buildFeatureCard(
-                icon: Icons.camera_alt,
+              CustomCard(
                 title: 'Scan Bonds',
+                icon: Icons.confirmation_number,
                 color: Colors.green,
-                enabled: true,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => Scaffold(
+                      appBar: AppBar(title: const Text('Scan Bonds')),
+                      body: const GuestScanRegisterPrompt(),
+                    ),
+                  ),
+                ),
               ),
-              _buildFeatureCard(
-                icon: Icons.search,
+              CustomCard(
                 title: 'Search Results',
+                icon: Icons.search,
                 color: Colors.blue,
-                enabled: true,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DrawResultsScreen(),
+                  ),
+                ),
               ),
-              _buildFeatureCard(
-                icon: Icons.store,
+              CustomCard(
                 title: 'View Marketplace',
+                icon: Icons.store,
                 color: Colors.orange,
-                enabled: true,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MarketplaceScreen(),
+                  ),
+                ),
               ),
-              _buildFeatureCard(
-                icon: Icons.history,
-                title: 'Draw History',
+              CustomCard(
+                title: 'Draw Lists',
+                icon: Icons.list_alt,
                 color: Colors.purple,
-                enabled: true,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DrawListsScreen(),
+                  ),
+                ),
               ),
             ],
           ),
@@ -235,36 +312,58 @@ class GuestDashboardScreen extends StatelessWidget {
           StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('draws')
-                .orderBy('drawDate', descending: true)
+                .orderBy('addedAt', descending: true)
                 .limit(5)
                 .snapshots(),
             builder: (context, snapshot) {
-              if (!snapshot.hasData) {
+              if (snapshot.hasError) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Text(
+                      'Unable to load draws. Check connection.',
+                      style: GoogleFonts.inter(color: Colors.grey),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                );
+              }
+              if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(child: CircularProgressIndicator());
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return Center(
+                  child: Text(
+                    'No draws available',
+                    style: GoogleFonts.inter(color: Colors.grey),
+                  ),
+                );
               }
 
               final draws = snapshot.data!.docs;
-
-              if (draws.isEmpty) {
-                return const Center(child: Text('No draws available'));
-              }
-
               return Column(
                 children: draws.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
+                  final raw = doc.data();
+                  final data = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
+                  final denom = data['denomination']?.toString() ?? '';
+                  final drawNum = data['drawNumber']?.toString() ?? 'N/A';
+                  final firstPrize = data['firstPrize']?.toString() ?? '';
                   return Card(
                     margin: const EdgeInsets.only(bottom: 8),
                     child: ListTile(
                       leading: const Icon(Icons.celebration_outlined, color: Colors.orange),
-                      title: Text('Draw #${data['drawNumber'] ?? 'N/A'}'),
-                      subtitle: Text('${data['city'] ?? ''} • ${_formatDrawDate(data['drawDate'])}'),
-                      trailing: Text(
-                        'Rs. ${data['firstPrize'] ?? '0'}',
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.green,
-                        ),
-                      ),
+                      title: Text('Rs. $denom Draw #$drawNum'),
+                      subtitle: Text('${data['city'] ?? ''} • ${_formatDrawDate(data['drawDate'] ?? data['addedAt'])}'),
+                      trailing: firstPrize.isNotEmpty
+                          ? Text(
+                              '1st: $firstPrize',
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green,
+                                fontSize: 12,
+                              ),
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   );
                 }).toList(),
@@ -272,41 +371,6 @@ class GuestDashboardScreen extends StatelessWidget {
             },
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildFeatureCard({
-    required IconData icon,
-    required String title,
-    required Color color,
-    required bool enabled,
-  }) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(icon, size: 40, color: color),
-            const SizedBox(height: 8),
-            Text(
-              title,
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-              ),
-              textAlign: TextAlign.center,
-            ),
-            if (enabled)
-              Chip(
-                label: const Text('Available'),
-                backgroundColor: Colors.green[50],
-                labelStyle: const TextStyle(color: Colors.green),
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-              ),
-          ],
-        ),
       ),
     );
   }
@@ -333,598 +397,73 @@ class GuestDashboardScreen extends StatelessWidget {
 }
 
 // ===========================
-// Guest Search Screen (Updated with real search)
+// Guest Scan tab: register prompt (no bond input)
 // ===========================
 
-class GuestSearchScreen extends StatefulWidget {
-  const GuestSearchScreen({super.key});
-
-  @override
-  State<GuestSearchScreen> createState() => _GuestSearchScreenState();
-}
-
-class _GuestSearchScreenState extends State<GuestSearchScreen> {
-  final TextEditingController _searchController = TextEditingController();
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  List<Map<String, dynamic>> _searchResults = [];
-  bool _isSearching = false;
-
-  Future<void> _searchDrawResults() async {
-    if (_searchController.text.isEmpty) return;
-
-    setState(() {
-      _isSearching = true;
-      _searchResults.clear();
-    });
-
-    try {
-      final query = _searchController.text.trim();
-
-      // Search by draw number
-      final drawQuery = await _firestore
-          .collection('draws')
-          .where('drawNumber', isEqualTo: query)
-          .limit(10)
-          .get();
-
-      // Search by city
-      final cityQuery = await _firestore
-          .collection('draws')
-          .where('city', isEqualTo: query)
-          .limit(10)
-          .get();
-
-      // Combine results
-      final allResults = [
-        ...drawQuery.docs,
-        ...cityQuery.docs,
-      ];
-
-      // Remove duplicates
-      final uniqueIds = <String>{};
-      final uniqueResults = <QueryDocumentSnapshot>[];
-
-      for (final doc in allResults) {
-        if (!uniqueIds.contains(doc.id)) {
-          uniqueIds.add(doc.id);
-          uniqueResults.add(doc);
-        }
-      }
-
-      setState(() {
-        _searchResults = uniqueResults
-            .map((doc) => {
-          'id': doc.id,
-          ...doc.data() as Map<String, dynamic>,
-        })
-            .toList();
-      });
-    } catch (e) {
-      print('Search error: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Search failed: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      setState(() {
-        _isSearching = false;
-      });
-    }
-  }
+class GuestScanRegisterPrompt extends StatelessWidget {
+  const GuestScanRegisterPrompt({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Column(
-        children: [
-          // Search Bar
-          Container(
-            padding: const EdgeInsets.all(16),
-            color: AppColors.primaryColor.withOpacity(0.1),
-            child: Row(
-              children: [
-                Expanded(
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      hintText: 'Search by draw number or city...',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide.none,
-                      ),
-                      filled: true,
-                      fillColor: Colors.white,
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 16,
-                        vertical: 12,
-                      ),
-                    ),
-                    onSubmitted: (_) => _searchDrawResults(),
-                  ),
-                ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _searchDrawResults,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 20,
-                      vertical: 15,
-                    ),
-                  ),
-                  child: _isSearching
-                      ? const SizedBox(
-                    width: 20,
-                    height: 20,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
-                      : const Text('Search'),
-                ),
-              ],
-            ),
-          ),
-
-          // Results
-          Expanded(
-            child: _isSearching
-                ? const Center(child: CircularProgressIndicator())
-                : _searchResults.isEmpty
-                ? Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.search,
-                    size: 80,
-                    color: Colors.grey[300],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Search Draw Results',
-                    style: GoogleFonts.inter(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 32),
-                    child: Text(
-                      'Search by:\n• Draw Number\n• City Name',
-                      textAlign: TextAlign.center,
-                      style: GoogleFonts.inter(color: Colors.grey),
-                    ),
-                  ),
-                ],
-              ),
-            )
-                : ListView.builder(
-              padding: const EdgeInsets.all(16),
-              itemCount: _searchResults.length,
-              itemBuilder: (context, index) {
-                final result = _searchResults[index];
-                return _buildResultCard(result);
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildResultCard(Map<String, dynamic> result) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+    return Center(
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(24),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Chip(
-                  label: Text('Draw #${result['drawNumber'] ?? ''}'),
-                  backgroundColor: AppColors.primaryColor.withOpacity(0.1),
-                ),
-                Text(
-                  result['city'] ?? '',
-                  style: GoogleFonts.inter(
-                    color: Colors.grey,
-                  ),
-                ),
-              ],
+            Icon(
+              Icons.lock_outline,
+              size: 72,
+              color: Colors.grey[400],
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
             Text(
-              'Date: ${_formatDate(result['drawDate'])}',
+              'Sign in required',
               style: GoogleFonts.inter(
-                fontWeight: FontWeight.w500,
+                fontSize: 22,
+                fontWeight: FontWeight.w600,
               ),
+              textAlign: TextAlign.center,
             ),
-            const SizedBox(height: 8),
-            if (result['firstPrize'] != null)
-              Text(
-                '1st Prize: ${result['firstPrize']}',
-                style: GoogleFonts.inter(color: Colors.green),
-              ),
-            const SizedBox(height: 8),
-            if (result['denomination'] != null)
-              Text(
-                'Denomination: ${result['denomination']}',
-                style: GoogleFonts.inter(color: Colors.blue),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _formatDate(dynamic date) {
-    try {
-      if (date is Timestamp) {
-        return '${date.toDate().day}/${date.toDate().month}/${date.toDate().year}';
-      }
-      return date.toString();
-    } catch (e) {
-      return 'Unknown date';
-    }
-  }
-}
-
-// ===========================
-// Guest Scan Screen (Updated with manual input)
-// ===========================
-
-class GuestScanScreen extends StatefulWidget {
-  const GuestScanScreen({super.key});
-
-  @override
-  State<GuestScanScreen> createState() => _GuestScanScreenState();
-}
-
-class _GuestScanScreenState extends State<GuestScanScreen> {
-  String _scannedText = '';
-  bool _isScanning = false;
-
-  // Simple manual input method for testing
-  final TextEditingController _bondController = TextEditingController();
-
-  Future<void> _scanBond() async {
-    final bondNumber = _bondController.text.trim();
-
-    if (bondNumber.isEmpty || bondNumber.length != 10) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Please enter a valid 10-digit bond number'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
-    }
-
-    setState(() {
-      _isScanning = true;
-      _scannedText = 'Scanning bond: $bondNumber';
-    });
-
-    await Future.delayed(const Duration(seconds: 1));
-
-    // Mock result
-    setState(() {
-      _isScanning = false;
-      _scannedText = 'Scanned: $bondNumber';
-    });
-
-    _showScanResults(bondNumber);
-  }
-
-  void _showScanResults(String bondNumber) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Scan Results'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Bond Number: $bondNumber', style: const TextStyle(fontWeight: FontWeight.bold)),
-            const SizedBox(height: 16),
-
-            // Mock draw results
-            _buildDrawResult('December 2023', 'Karachi', 'Not a winner', '-'),
             const SizedBox(height: 12),
-            _buildDrawResult('November 2023', 'Lahore', 'Not a winner', '-'),
-            const SizedBox(height: 12),
-            _buildDrawResult('October 2023', 'Islamabad', 'Winner', 'Rs. 15,000'),
-
-            const SizedBox(height: 16),
-            Text('Note: Guest users cannot save bonds. Register to save.',
-                style: TextStyle(color: Colors.grey, fontSize: 12)),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const RegisterScreen()),
-              );
-            },
-            child: const Text('Register to Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDrawResult(String draw, String city, String status, String prize) {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: status == 'Winner' ? Colors.green[50] : Colors.grey[100],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: status == 'Winner' ? Colors.green : Colors.grey[300]!),
-      ),
-      child: Row(
-        children: [
-          Icon(
-            status == 'Winner' ? Icons.celebration : Icons.info,
-            color: status == 'Winner' ? Colors.green : Colors.grey,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text('$draw - $city', style: const TextStyle(fontWeight: FontWeight.w500)),
-                const SizedBox(height: 4),
-                Text('Status: $status', style: TextStyle(
-                  color: status == 'Winner' ? Colors.green : Colors.grey,
-                )),
-                if (prize != '-')
-                  Text('Prize: $prize', style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green,
-                  )),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Instructions
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue[100]!),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.blue),
-                    SizedBox(width: 8),
-                    Text(
-                      'How to Scan',
-                      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  '1. Enter 10-digit bond number manually\n'
-                      '2. Or use camera to scan (requires registration)\n'
-                      '3. Check results instantly',
-                  style: GoogleFonts.inter(color: Colors.grey[700]),
-                ),
-              ],
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Bond Input
-          Text(
-            'Enter Bond Number',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _bondController,
-            decoration: InputDecoration(
-              hintText: 'Enter 10-digit bond number',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
+            Text(
+              'Create an account to scan bonds and check results',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: Colors.grey[600],
               ),
-              prefixIcon: const Icon(Icons.confirmation_number),
-              suffixIcon: IconButton(
-                icon: const Icon(Icons.qr_code_scanner),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
                 onPressed: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Camera scanning requires registration'),
-                      backgroundColor: Colors.orange,
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const RegisterScreen(),
                     ),
                   );
                 },
-              ),
-            ),
-            keyboardType: TextInputType.number,
-            maxLength: 10,
-          ),
-
-          const SizedBox(height: 16),
-
-          // Scan Button
-          SizedBox(
-            width: double.infinity,
-            height: 50,
-            child: ElevatedButton(
-              onPressed: _isScanning ? null : _scanBond,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primaryColor,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: _isScanning
-                  ? const SizedBox(
-                width: 24,
-                height: 24,
-                child: CircularProgressIndicator(color: Colors.white),
-              )
-                  : const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.search),
-                  SizedBox(width: 8),
-                  Text('Check Bond', style: TextStyle(fontSize: 16)),
-                ],
-              ),
-            ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Camera Option (Requires Registration)
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.grey[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey[300]!),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.camera_alt, color: Colors.grey),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Camera Scanning',
-                        style: GoogleFonts.inter(fontWeight: FontWeight.w600),
-                      ),
-                      Text(
-                        'Register to use camera for instant scanning',
-                        style: GoogleFonts.inter(color: Colors.grey, fontSize: 12),
-                      ),
-                    ],
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                  ),
-                  child: const Text('Register'),
-                ),
-              ],
-            ),
-          ),
-
-          if (_scannedText.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.green[50],
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.green[100]!),
-              ),
-              child: Row(
-                children: [
-                  const Icon(Icons.check_circle, color: Colors.green),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _scannedText,
-                      style: GoogleFonts.inter(color: Colors.green[800]),
-                    ),
-                  ),
-                ],
+                child: const Text('Register'),
               ),
             ),
           ],
-
-          const SizedBox(height: 24),
-
-          // Recent Scans (Local storage)
-          Text(
-            'Recent Checks',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 12),
-          _buildRecentScans(),
-        ],
+        ),
       ),
     );
   }
-
-  Widget _buildRecentScans() {
-    // Mock recent scans
-    final recentScans = [
-      {'number': '1234567890', 'date': 'Today', 'result': 'Not a winner'},
-      {'number': '0987654321', 'date': 'Yesterday', 'result': 'Not a winner'},
-      {'number': '1122334455', 'date': '2 days ago', 'result': 'Winner'},
-    ];
-
-    return Column(
-      children: recentScans.map((scan) {
-        return Card(
-          margin: const EdgeInsets.only(bottom: 8),
-          child: ListTile(
-            leading: const Icon(Icons.confirmation_number_outlined),
-            title: Text('Bond #${scan['number']}'),
-            subtitle: Text('${scan['date']} • ${scan['result']}'),
-            trailing: scan['result'] == 'Winner'
-                ? const Icon(Icons.celebration, color: Colors.green)
-                : const Icon(Icons.close, color: Colors.grey),
-          ),
-        );
-      }).toList(),
-    );
-  }
 }
+
+// (GuestScanScreen removed – guest sees only GuestScanRegisterPrompt)
 
 // ===========================
 // Guest Marketplace Screen (Updated with real listings)
@@ -970,6 +509,18 @@ class GuestMarketplaceScreen extends StatelessWidget {
                   .orderBy('createdAt', descending: true)
                   .snapshots(),
               builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Text(
+                        'Unable to load marketplace. Check connection.',
+                        style: GoogleFonts.inter(color: Colors.grey),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  );
+                }
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -998,13 +549,13 @@ class GuestMarketplaceScreen extends StatelessWidget {
                 }
 
                 final items = snapshot.data!.docs;
-
                 return ListView.builder(
                   padding: const EdgeInsets.all(16),
                   itemCount: items.length,
                   itemBuilder: (context, index) {
                     final item = items[index];
-                    final data = item.data() as Map<String, dynamic>;
+                    final raw = item.data();
+                    final data = raw is Map<String, dynamic> ? raw : <String, dynamic>{};
                     return _buildMarketplaceItem(context, item.id, data);
                   },
                 );
@@ -1030,10 +581,10 @@ class GuestMarketplaceScreen extends StatelessWidget {
               children: [
                 Chip(
                   label: Text(data['denomination'] ?? ''),
-                  backgroundColor: AppColors.primaryColor.withOpacity(0.1),
+                  backgroundColor: AppColors.primaryColor.withValues(alpha:0.1),
                 ),
                 Text(
-                  'Rs. ${data['askingPrice']?.toStringAsFixed(0) ?? '0'}',
+                  'Rs. ${_formatPrice(data['askingPrice'])}',
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w700,
@@ -1070,21 +621,46 @@ class GuestMarketplaceScreen extends StatelessWidget {
               children: [
                 const Icon(Icons.person_outline, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(
-                  data['sellerName'] ?? 'Seller',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey,
+                Expanded(
+                  child: Text(
+                    data['sellerName'] ?? 'Seller',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                const SizedBox(width: 16),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
                 const Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
                 const SizedBox(width: 4),
-                Text(
-                  data['location'] ?? '',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.grey,
+                Expanded(
+                  child: Text(
+                    data['location'] ?? '',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                Icon(Icons.lock_outline, size: 14, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    'Seller contact is available after you register and complete a purchase',
+                    style: GoogleFonts.inter(fontSize: 11, color: Colors.grey[600]),
                   ),
                 ),
               ],
@@ -1145,6 +721,13 @@ class GuestMarketplaceScreen extends StatelessWidget {
     );
   }
 
+  String _formatPrice(dynamic value) {
+    if (value == null) return '0';
+    if (value is num) return (value as num).toStringAsFixed(0);
+    final n = double.tryParse(value.toString());
+    return n != null ? n.toStringAsFixed(0) : '0';
+  }
+
   String _formatDate(dynamic date) {
     try {
       if (date is Timestamp) {
@@ -1158,6 +741,7 @@ class GuestMarketplaceScreen extends StatelessWidget {
 
         return '${d.day}/${d.month}/${d.year}';
       }
+      if (date is String) return date;
       return '';
     } catch (e) {
       return '';

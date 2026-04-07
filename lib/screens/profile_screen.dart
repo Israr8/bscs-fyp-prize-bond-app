@@ -3,9 +3,11 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:provider/provider.dart';
 import 'package:app/utils/constants.dart';
-import 'package:app/screens/change_password_screen.dart';
+import 'package:app/screens/auth/change_password_screen.dart';
 import 'package:app/screens/linked_devices_screen.dart';
+import 'package:app/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -35,7 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-    // Use post frame callback to avoid ScaffoldMessenger error
   @override
   void initState() {
     super.initState();
@@ -68,11 +69,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _isLoading = false;
           });
         }
-      // Load user document from Firestore
-        return;
+      return;
       }
 
-        // Create user document if doesn't exist
       final userDoc = await _firestore.collection('users').doc(_user!.uid).get();
 
       if (!userDoc.exists) {
@@ -100,7 +99,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _userData = {};
         }
       }
-      // Set controller values with null safety
 
       if (!mounted) return;
 
@@ -168,14 +166,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           );
         }
-      // Upload to Firebase Storage
         return;
       }
 
-      // Show uploading progress
       final fileName = 'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
       final reference = _storage.ref().child('profile_images/$fileName');
-      // Optional: Show progress
 
       final uploadTask = reference.putFile(_profileImage!);
 
@@ -187,7 +182,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await uploadTask;
 
       if (!mounted) return;
-      // Update Firestore
 
       final downloadUrl = await reference.getDownloadURL();
 
@@ -305,31 +299,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _isUpdating = false;
       });
     }
-    // Show loading dialog
   }
 
   Future<void> _logout() async {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (BuildContext ctx) {
-        return const Center(
-          child: CircularProgressIndicator(),
-        );
-      },
-    );
-
-      // Dialog will auto-close when screen changes
+    final authService = context.read<AuthService>();
     try {
-      await _auth.signOut();
-      debugPrint('Logout successful');
-      // Close loading dialog
-    } catch (e) {
-      debugPrint(' Logout error: $e');
-
+      // Drop any screens on top so logout actually shows login.
       if (mounted) {
-        Navigator.pop(context);
-
+        final nav = Navigator.of(context, rootNavigator: true);
+        if (nav.canPop()) {
+          nav.popUntil((route) => route.isFirst);
+        }
+      }
+      await authService.signOut();
+      if (FirebaseAuth.instance.currentUser != null) {
+        await FirebaseAuth.instance.signOut();
+      }
+      debugPrint('Logout successful');
+    } catch (e) {
+      debugPrint('Logout error: $e');
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Logout failed: ${e.toString()}'),
@@ -359,7 +348,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           ElevatedButton(
             onPressed: () {
-              Navigator.pop(ctx); // Close confirmation dialog
+              Navigator.pop(ctx);
               _logout(); // Call logout with loading
             },
             style: ElevatedButton.styleFrom(
@@ -756,7 +745,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget _buildHelpItem(String title, IconData icon) {
     return ListTile(
       leading: Icon(icon, color: Colors.grey[600]),
-        // Handle tap
       title: Text(title),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: () {

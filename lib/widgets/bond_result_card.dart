@@ -40,7 +40,7 @@ class BondResultCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
-          color: isWinner ? Colors.green.withOpacity(0.3) : Colors.grey.withOpacity(0.3),
+          color: isWinner ? Colors.green.withValues(alpha:0.3) : Colors.grey.withValues(alpha:0.3),
           width: 1,
         ),
       ),
@@ -58,7 +58,7 @@ class BondResultCard extends StatelessWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                       decoration: BoxDecoration(
-                        color: isWinner ? Colors.green.withOpacity(0.1) : Colors.blue.withOpacity(0.1),
+                        color: isWinner ? Colors.green.withValues(alpha:0.1) : Colors.blue.withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(20),
                         border: Border.all(
                           color: isWinner ? Colors.green : Colors.blue,

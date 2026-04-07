@@ -5,8 +5,6 @@ import 'package:app/screens/auth/register_screen.dart';
 import 'package:app/screens/guest_home_screen.dart';
 import 'package:app/utils/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:app/screens/auth/pin_authentication_screen.dart';
-import 'package:app/screens/auth/admin_panel_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -59,39 +57,18 @@ class _LoginScreenState extends State<LoginScreen> {
         throw Exception('User data not found');
       }
 
-      final data = userDoc.data() as Map<String, dynamic>;
-      final userType = data['userType'] ?? 'normal';
-      // Update last login
-      final isApproved = data['isApproved'] ?? false;
-      final status = data['status'] ?? 'pending';
-
       await FirebaseFirestore.instance.collection('users').doc(userId).update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
 
-      // user Type or approval check kar k navigate karo
-      if (userType == 'admin') {
-        // Admin ---->    Navigate to Admin Panel
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const AdminPanelScreen()),
-              (route) => false,
-        );
-      } else if (!isApproved || status != 'approved') {
-        // Normal user not approved ---->>  Show pending screen
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(
-            builder: (context) => _buildPendingApprovalScreen(),
+      // AuthWrapper listens to auth + AuthService and shows Admin / Pending / PIN / Home.
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Signed in successfully'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 1),
           ),
-              (route) => false,
-        );
-      } else {
-        // Approved normal user - Go to PIN screen
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const PinAuthenticationScreen()),
-              (route) => false,
         );
       }
 
@@ -130,45 +107,6 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     }
   }
-  // Pending approval screen dikhaane k widget
-  Widget _buildPendingApprovalScreen() {
-    return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.schedule, size: 80, color: Colors.orange),
-            const SizedBox(height: 20),
-            const Text(
-              'Account Pending Approval',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 40),
-              child: Text(
-                'Your account is under review ---->>> You will receive an email once approved.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton(
-              onPressed: () {
-                FirebaseAuth.instance.signOut();
-                Navigator.pushAndRemoveUntil(
-                  context,
-                  MaterialPageRoute(builder: (context) => const LoginScreen()),
-                      (route) => false,
-                );
-              },
-              child: const Text('Back to Login'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 
   void _loginAsGuest() {
     Navigator.pushAndRemoveUntil(
@@ -195,20 +133,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
 
                 Container(
-                  width: 100,
-                  height: 100,
+                  width: 120,
+                  height: 120,
                   decoration: BoxDecoration(
-                    color: AppColors.primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    Icons.money,
-                    size: 50,
-                    color: Colors.white,
+                      image: const DecorationImage(
+                      image: AssetImage('assets/images/logo.png'),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
 
-                const SizedBox(height: 24),
+                const SizedBox(height: 10),
 
                 Text(
                   'Pakbond',
@@ -385,7 +320,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       },
                     ),
                     const SizedBox(width: 16),
-                    _buildGuestButton(), // Updated Guest Button
+                    _buildGuestButton(),
                   ],
                 ),
                 // Register Link
@@ -439,9 +374,9 @@ class _LoginScreenState extends State<LoginScreen> {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha:0.1),
             shape: BoxShape.circle,
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha:0.3)),
           ),
           child: IconButton(
             icon: Icon(icon, color: color, size: 30),
@@ -467,9 +402,9 @@ class _LoginScreenState extends State<LoginScreen> {
           width: 60,
           height: 60,
           decoration: BoxDecoration(
-            color: Colors.grey.withOpacity(0.1),
+            color: Colors.black.withAlpha(20),
             shape: BoxShape.circle,
-            border: Border.all(color: Colors.grey.withOpacity(0.3)),
+            border: Border.all(color: Colors.grey.withValues(alpha:1)),
           ),
           child: IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.grey, size: 30),

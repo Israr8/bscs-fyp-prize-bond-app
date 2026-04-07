@@ -1,6 +1,8 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:app/screens/scan_screen.dart';
 import 'package:app/screens/my_bonds_screen.dart';
 import 'package:app/screens/marketplace_screen.dart';
@@ -22,6 +24,8 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
+  bool _isOffline = false;
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySubscription;
 
   final List<Widget> _screens = [
     const HomeDashboard(),
@@ -43,9 +47,35 @@ class _HomeScreenState extends State<HomeScreen> {
       MaterialPageRoute(
         builder: (context) => const NotificationsScreen(),
       ),
-    );
+    ).then((_) => NotificationService.refreshInbox());
   }
 
+  static bool _checkOffline(List<ConnectivityResult> results) {
+    return results.isEmpty ||
+        results.every((r) => r == ConnectivityResult.none);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.startWinnerListenerIfNeeded();
+      NotificationService.refreshInbox();
+    });
+    Connectivity().checkConnectivity().then((r) {
+      if (mounted) setState(() => _isOffline = _checkOffline(r));
+    });
+    _connectivitySubscription =
+        Connectivity().onConnectivityChanged.listen((List<ConnectivityResult> r) {
+      if (mounted) setState(() => _isOffline = _checkOffline(r));
+    });
+  }
+
+  @override
+  void dispose() {
+    _connectivitySubscription?.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,7 +86,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: GoogleFonts.inter(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: AppColors.primaryColor,
+            color: Theme.of(context).colorScheme.primary,
           ),
         ),
         centerTitle: true,
@@ -106,7 +136,32 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
       ),
-      body: _screens[_selectedIndex],
+      body: Column(
+        children: [
+          if (_isOffline)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 6),
+              color: Colors.amber.shade700,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: const [
+                  Icon(Icons.cloud_off, color: Colors.white, size: 18),
+                  SizedBox(width: 8),
+                  Text(
+                    'Offline – cached data',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          Expanded(child: _screens[_selectedIndex]),
+        ],
+      ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
@@ -163,7 +218,6 @@ class HomeDashboard extends StatelessWidget {
         children: [
           StreamBuilder<DocumentSnapshot>(
             stream: user != null
-              // Default data if user not logged in or data not available
                 ? _firestore.collection('users').doc(user.uid).snapshots()
                 : null,
             builder: (context, snapshot) {
@@ -171,12 +225,10 @@ class HomeDashboard extends StatelessWidget {
               String userEmail = 'Not logged in';
               String package = 'FREE';
               String expiry = '∞';
-                // Get data from Firebase Auth
               String space = '0/1,000';
 
               if (user != null) {
                 userName =
-                // Get data from Firestore if available
                     user.displayName ?? user.email?.split('@').first ?? 'User';
                 userEmail = user.email ?? 'No email';
 
@@ -192,20 +244,26 @@ class HomeDashboard extends StatelessWidget {
                 }
               }
 
+              final theme = Theme.of(context);
+              final isDark = theme.brightness == Brightness.dark;
               return Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: AppColors.primaryColor.withOpacity(0.1),
+                  color: isDark
+                      ? theme.colorScheme.surfaceContainerHighest
+                      : AppColors.primaryColor.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                      color: AppColors.primaryColor.withOpacity(0.3)),
-                    // Profile Picture from Firestore or default
+                    color: isDark
+                        ? theme.colorScheme.outline.withValues(alpha:0.3)
+                        : AppColors.primaryColor.withValues(alpha:0.3),
+                  ),
                 ),
                 child: Row(
                   children: [
                     CircleAvatar(
                       radius: 28,
-                      backgroundColor: AppColors.primaryColor,
+                      backgroundColor: theme.colorScheme.primary,
                       backgroundImage: snapshot.hasData &&
                               snapshot.data!.exists &&
                               (snapshot.data!.data() as Map<String, dynamic>?)?[
@@ -231,12 +289,11 @@ class HomeDashboard extends StatelessWidget {
                                   .toString()
                                   .isNotEmpty
                           ? null
-                          : const Icon(Icons.person,
-                              size: 28, color: Colors.white),
+                          : Icon(Icons.person,
+                              size: 28, color: theme.colorScheme.onPrimary),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                          // User Name
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
@@ -245,18 +302,17 @@ class HomeDashboard extends StatelessWidget {
                             style: GoogleFonts.inter(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
+                              color: theme.colorScheme.onSurface,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                          // User Email
                           ),
                           const SizedBox(height: 4),
-
                           Text(
                             userEmail,
                             style: GoogleFonts.inter(
                               fontSize: 12,
-                              color: Colors.grey,
+                              color: theme.colorScheme.onSurfaceVariant,
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
@@ -269,10 +325,10 @@ class HomeDashboard extends StatelessWidget {
                             runSpacing: 4,
                             children: [
                               _buildPackageInfo(
-                                  'Package: $package', Icons.card_giftcard),
+                                  context, 'Package: $package', Icons.card_giftcard),
                               _buildPackageInfo(
-                                  'Expiry: $expiry', Icons.calendar_today),
-                              _buildPackageInfo('Space: $space', Icons.storage),
+                                  context, 'Expiry: $expiry', Icons.calendar_today),
+                              _buildPackageInfo(context, 'Space: $space', Icons.storage),
                             ],
                           ),
                         ],
@@ -400,25 +456,33 @@ class HomeDashboard extends StatelessWidget {
     );
   }
 
-  Widget _buildPackageInfo(String text, IconData icon) {
+  Widget _buildPackageInfo(BuildContext context, String text, IconData icon) {
+    final theme = Theme.of(context);
+    final bgColor = theme.brightness == Brightness.dark
+        ? theme.colorScheme.surface
+        : Colors.grey[100]!;
+    final borderColor = theme.brightness == Brightness.dark
+        ? theme.colorScheme.outline
+        : Colors.grey[300]!;
+    final fgColor = theme.colorScheme.onSurfaceVariant;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: bgColor,
         borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.grey[300]!),
+        border: Border.all(color: borderColor),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 10, color: Colors.grey),
+          Icon(icon, size: 10, color: fgColor),
           const SizedBox(width: 3),
           Flexible(
             child: Text(
               text,
               style: GoogleFonts.inter(
                 fontSize: 9,
-                color: Colors.grey,
+                color: fgColor,
               ),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,

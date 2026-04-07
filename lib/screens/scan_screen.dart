@@ -9,7 +9,6 @@ import 'package:image_picker/image_picker.dart';
 import 'package:camera/camera.dart';
 import 'package:confetti/confetti.dart';
 import 'package:app/widgets/bond_result_card.dart';
-import 'package:intl/intl.dart';
 
 class ScanScreen extends StatefulWidget {
   const ScanScreen({super.key});
@@ -45,7 +44,6 @@ class _ScanScreenState extends State<ScanScreen> {
   Map<String, dynamic>? _scanResult;
   String _errorMessage = '';
   File? _selectedImage;
-  String _extractedText = '';
   List<String> _recentScans = [];
 
   // List of denominations (same as draw results screen)
@@ -650,13 +648,13 @@ class _ScanScreenState extends State<ScanScreen> {
         gradient: LinearGradient(
           colors: [
             Colors.transparent,
-            Colors.green.withOpacity(0.8),
+            Colors.green.withValues(alpha:0.8),
             Colors.transparent,
           ],
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.green.withOpacity(0.5),
+            color: Colors.green.withValues(alpha:0.5),
             blurRadius: 8,
             spreadRadius: 2,
           ),
@@ -967,7 +965,6 @@ class _ScanScreenState extends State<ScanScreen> {
                     ],
                   ),
 
-                // Check Button
                 if (_scannedBondNumber.isNotEmpty &&
                     _bondDenomination.isNotEmpty &&
                     _scanResult == null &&
@@ -991,7 +988,6 @@ class _ScanScreenState extends State<ScanScreen> {
                     ),
                   ),
 
-                // Loading
                 if (_isChecking)
                   const Padding(
                     padding: EdgeInsets.all(20),
@@ -1141,7 +1137,7 @@ class _ScanScreenState extends State<ScanScreen> {
                     borderRadius: BorderRadius.circular(25),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.5),
+                        color: Colors.grey.withValues(alpha:0.5),
                         blurRadius: 15,
                         spreadRadius: 2,
                       ),
@@ -1218,7 +1214,7 @@ class _ScanScreenState extends State<ScanScreen> {
         Container(
           height: 300,
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.green.withOpacity(0.5), width: 2),
+            border: Border.all(color: Colors.green.withValues(alpha:0.5), width: 2),
             borderRadius: BorderRadius.circular(12),
           ),
         ),
@@ -1228,7 +1224,7 @@ class _ScanScreenState extends State<ScanScreen> {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.7),
+              color: Colors.black.withValues(alpha:0.7),
               borderRadius: BorderRadius.circular(20),
             ),
             child: const Text(
@@ -1253,9 +1249,6 @@ class _ScanScreenState extends State<ScanScreen> {
       final bondNumber = _extractBondNumberAdvanced(recognizedText.text);
 
       setState(() {
-        _extractedText = bondNumber.isNotEmpty
-            ? 'Extracted Bond Number: $bondNumber'
-            : 'No bond number found in image';
         _scannedBondNumber = bondNumber;
         _isProcessing = false;
       });

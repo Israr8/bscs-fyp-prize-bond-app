@@ -1,8 +1,7 @@
-// lib/screens/change_password_screen.dart
+// lib/screens/auth/change_password_screen.dart
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:app/utils/constants.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class ChangePasswordScreen extends StatefulWidget {
   const ChangePasswordScreen({super.key});
@@ -39,7 +38,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
         throw Exception('Email not available');
       }
 
-      // Re-authenticate user
       final credential = EmailAuthProvider.credential(
         email: user.email!,
         password: _currentPasswordController.text,
@@ -47,10 +45,8 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
 
       await user.reauthenticateWithCredential(credential);
 
-      // Change password
       await user.updatePassword(_newPasswordController.text);
 
-      // Clear form
       _currentPasswordController.clear();
       _newPasswordController.clear();
       _confirmPasswordController.clear();
@@ -247,7 +243,6 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
               // Forgot Password
               TextButton(
                 onPressed: () {
-                  // Navigate to forgot password screen
                 },
                 child: const Text('Forgot Password?'),
               ),

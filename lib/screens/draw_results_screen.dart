@@ -29,7 +29,6 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
   bool _showDenominationDropdown = false;
   bool _showDateDropdown = false;
 
-  // New variables for search type
   String _searchType = 'single'; // 'single', 'series', 'multiple'
   final TextEditingController _startSeriesController = TextEditingController();
   final TextEditingController _endSeriesController = TextEditingController();
@@ -119,9 +118,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
     }
   }
 
-  // Modified search function to handle all types
   Future<void> _checkBondInDraws() async {
-    // Check if denomination is selected
     if (_selectedDenomination == 'Select Denomination') {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -248,13 +245,11 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
 
           String? prizeType;
 
-          // Check first prize
           final firstPrize = data['firstPrize']?.toString().trim();
           if (firstPrize == bondNumber) {
             prizeType = 'First Prize';
           }
 
-          // Check second prizes
           if (prizeType == null) {
             final secondPrizes = data['secondPrize'];
             if (secondPrizes is List) {
@@ -267,7 +262,6 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
             }
           }
 
-          // Check third prizes
           if (prizeType == null) {
             final thirdPrizeData = data['thirdPrize'];
             if (thirdPrizeData != null) {
@@ -290,7 +284,6 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
             }
           }
 
-          // Check consolation prizes
           if (prizeType == null) {
             final consolationPrizeData = data['consolationPrize'];
             if (consolationPrizeData != null) {
@@ -540,7 +533,6 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
     }
   }
 
-  // Build denomination dropdown
   Widget _buildDenominationDropdown() {
     return Container(
       width: double.infinity,
@@ -563,7 +555,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha:0.1),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -601,7 +593,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
                 border: Border.all(color: Colors.grey[300]!),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
+                    color: Colors.grey.withValues(alpha:0.1),
                     blurRadius: 8,
                     offset: const Offset(0, 4),
                   ),
@@ -650,7 +642,6 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
     );
   }
 
-  // Build draw date dropdown
   Widget _buildDateDropdown() {
     return Visibility(
       visible: _selectedDenomination != 'Select Denomination',
@@ -675,7 +666,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
                   border: Border.all(color: Colors.grey[300]!),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha:0.1),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -711,7 +702,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
                   border: Border.all(color: Colors.grey[300]!),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.grey.withOpacity(0.1),
+                      color: Colors.grey.withValues(alpha:0.1),
                       blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
@@ -765,7 +756,6 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
     );
   }
 
-  // Build the search section based on type
   Widget _buildSearchSection() {
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1094,7 +1084,7 @@ class _DrawResultsScreenState extends State<DrawResultsScreen> {
               children: [
                 Chip(
                   label: Text('Rs. ${data['denomination'] ?? '0'}'),
-                  backgroundColor: AppColors.primaryColor.withOpacity(0.1),
+                  backgroundColor: AppColors.primaryColor.withValues(alpha:0.1),
                   labelStyle: GoogleFonts.inter(
                     color: AppColors.primaryColor,
                     fontWeight: FontWeight.w600,

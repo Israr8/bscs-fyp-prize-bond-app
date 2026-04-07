@@ -19,6 +19,9 @@ class CustomCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textColor = theme.colorScheme.onSurface;
+    final subtitleColor = theme.colorScheme.onSurfaceVariant;
     return Card(
       elevation: 2,
       shape: RoundedRectangleBorder(
@@ -36,7 +39,7 @@ class CustomCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: color.withOpacity(0.1),
+                  color: color.withValues(alpha:0.2),
                   shape: BoxShape.circle,
                 ),
                 child: Icon(icon, color: color, size: 24),
@@ -47,6 +50,7 @@ class CustomCard extends StatelessWidget {
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.w600,
+                  color: textColor,
                 ),
               ),
               if (subtitle != null) ...[
@@ -55,7 +59,7 @@ class CustomCard extends StatelessWidget {
                   subtitle!,
                   style: GoogleFonts.inter(
                     fontSize: 12,
-                    color: Colors.grey,
+                    color: subtitleColor,
                   ),
                 ),
               ],

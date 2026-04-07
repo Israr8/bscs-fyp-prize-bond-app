@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'package:app/utils/constants.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 
 class LinkedDevicesScreen extends StatefulWidget {
@@ -24,8 +23,12 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadDevices();
-    _addCurrentDevice();
+    _initDevices();
+  }
+
+  Future<void> _initDevices() async {
+    await _addCurrentDevice();
+    await _loadDevices();
   }
 
   Future<void> _addCurrentDevice() async {
@@ -33,7 +36,6 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
       final user = _auth.currentUser;
       if (user == null) return;
 
-      // Get current device info
       String deviceId = '';
       String deviceName = '';
       String platform = '';
@@ -41,48 +43,55 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
       if (Theme.of(context).platform == TargetPlatform.android) {
         final androidInfo = await _deviceInfo.androidInfo;
         deviceId = androidInfo.id;
-        deviceName = androidInfo.model;
+        final brand = androidInfo.brand?.isNotEmpty == true ? androidInfo.brand! : '';
+        final model = androidInfo.model?.isNotEmpty == true ? androidInfo.model! : '';
+        deviceName = brand.isNotEmpty && model.isNotEmpty
+            ? '$brand $model'
+            : (model.isNotEmpty ? model : 'Android Device');
         platform = 'Android';
       } else if (Theme.of(context).platform == TargetPlatform.iOS) {
         final iosInfo = await _deviceInfo.iosInfo;
         deviceId = iosInfo.identifierForVendor ?? '';
-        deviceName = iosInfo.name ?? 'iOS Device';
+        deviceName = (iosInfo.name?.isNotEmpty == true ? iosInfo.name! : null) ?? 'iOS Device';
         platform = 'iOS';
       }
 
-      // Check if device already exists
-      final existingDevice = await _firestore
-          .collection('users')
-          .doc(user.uid)
-          .collection('devices')
-          .where('deviceId', isEqualTo: deviceId)
-          .get();
+      if (deviceId.isEmpty) return;
 
-      if (existingDevice.docs.isEmpty && deviceId.isNotEmpty) {
-        // Add new device
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('devices')
-            .add({
+      final devicesRef = _firestore.collection('users').doc(user.uid).collection('devices');
+      final existingDevice = await devicesRef.where('deviceId', isEqualTo: deviceId).get();
+
+      final now = FieldValue.serverTimestamp();
+
+      if (existingDevice.docs.isEmpty) {
+        final allDevices = await devicesRef.get();
+        if (allDevices.docs.isNotEmpty) {
+          final batch = _firestore.batch();
+          for (var doc in allDevices.docs) {
+            batch.update(doc.reference, {'isCurrent': false});
+          }
+          await batch.commit();
+        }
+        await devicesRef.add({
           'deviceId': deviceId,
           'deviceName': deviceName,
           'platform': platform,
-          'lastLogin': DateTime.now(),
+          'lastLogin': now,
           'isCurrent': true,
-          'createdAt': DateTime.now(),
+          'createdAt': now,
         });
-      } else if (existingDevice.docs.isNotEmpty) {
-        // Update last login
-        await _firestore
-            .collection('users')
-            .doc(user.uid)
-            .collection('devices')
-            .doc(existingDevice.docs.first.id)
-            .update({
-          'lastLogin': DateTime.now(),
-          'isCurrent': true,
-        });
+      } else {
+        final batch = _firestore.batch();
+        for (var doc in existingDevice.docs) {
+          batch.update(doc.reference, {'lastLogin': now, 'isCurrent': true});
+        }
+        final allDevices = await devicesRef.get();
+        for (var doc in allDevices.docs) {
+          if (!existingDevice.docs.any((d) => d.id == doc.id)) {
+            batch.update(doc.reference, {'isCurrent': false});
+          }
+        }
+        await batch.commit();
       }
     } catch (e) {
       debugPrint('Error adding device: $e');
@@ -99,6 +108,7 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
           .doc(user.uid)
           .collection('devices')
           .orderBy('lastLogin', descending: true)
+          .limit(20)
           .get();
 
       setState(() {
@@ -131,7 +141,6 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
           .doc(deviceId)
           .delete();
 
-      // Reload devices
       await _loadDevices();
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -177,7 +186,6 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
         final user = _auth.currentUser;
         if (user == null) return;
 
-        // Remove all devices except current
         for (var device in _devices) {
           if (device['isCurrent'] != true) {
             await _firestore
@@ -189,7 +197,6 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
           }
         }
 
-        // Reload devices
         await _loadDevices();
 
         ScaffoldMessenger.of(context).showSnackBar(
@@ -242,13 +249,22 @@ class _LinkedDevicesScreenState extends State<LinkedDevicesScreen> {
 
   Widget _buildDeviceCard(Map<String, dynamic> device) {
     final isCurrent = device['isCurrent'] == true;
-    final lastLogin = (device['lastLogin'] as Timestamp).toDate();
+    DateTime lastLogin = DateTime.now();
+    if (device['lastLogin'] != null) {
+      if (device['lastLogin'] is Timestamp) {
+        lastLogin = (device['lastLogin'] as Timestamp).toDate();
+      } else if (device['lastLogin'] is DateTime) {
+        lastLogin = device['lastLogin'] as DateTime;
+      }
+    }
     final platform = device['platform'] ?? 'Unknown';
-    final deviceName = device['deviceName'] ?? 'Unknown Device';
+    final deviceName = device['deviceName']?.toString().trim().isNotEmpty == true
+        ? device['deviceName'].toString()
+        : 'This device';
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
-      color: isCurrent ? AppColors.primaryColor.withOpacity(0.05) : null,
+      color: isCurrent ? AppColors.primaryColor.withValues(alpha:0.05) : null,
       child: ListTile(
         leading: Icon(
           platform == 'Android' ? Icons.android : Icons.phone_iphone,

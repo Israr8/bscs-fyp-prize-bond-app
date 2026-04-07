@@ -15,10 +15,28 @@ class AuthService extends ChangeNotifier {
 
   bool _isRegistering = false;
 
+  // PIN ok for this app session; cleared when user signs out.
+  bool _pinSessionUnlocked = false;
+  bool get isPinSessionUnlocked => _pinSessionUnlocked;
+
+  void unlockPinSession() {
+    _pinSessionUnlocked = true;
+    notifyListeners();
+  }
+
+  void lockPinSession() {
+    _pinSessionUnlocked = false;
+    notifyListeners();
+  }
+
   String _hashPin(String pin) {
     final cleanPin = pin.trim();
     final hash = sha256.convert(utf8.encode(cleanPin)).toString();
     return hash;
+  }
+
+  static String getDefaultPinHash() {
+    return sha256.convert(utf8.encode('0000')).toString();
   }
 
   AuthService() {
@@ -33,6 +51,7 @@ class AuthService extends ChangeNotifier {
         }
       } else {
         _user = null;
+        _pinSessionUnlocked = false;
         notifyListeners();
       }
     });
@@ -45,14 +64,9 @@ class AuthService extends ChangeNotifier {
       if (doc.exists && doc.data() != null) {
         final data = doc.data() as Map<String, dynamic>;
 
-        // Check user type first
         final userType = data['userType'] ?? 'normal';
 
-        // If user is admin, skip approval check
         if (userType == 'admin') {
-          // Load admin user data
-
-          // Update last login for admin
           _user = UserModel.fromFirestore(data);
           await _firestore.collection('users').doc(uid).update({
             'lastLogin': FieldValue.serverTimestamp(),
@@ -62,7 +76,6 @@ class AuthService extends ChangeNotifier {
           return;
         }
 
-        // For normal users, check approval status
         final isApproved = data['isApproved'] ?? false;
         final status = data['status'] ?? 'pending';
 
@@ -73,15 +86,11 @@ class AuthService extends ChangeNotifier {
           throw Exception('Account not approved. Please wait for admin approval.');
         }
 
-        // Load normal user data
         _user = UserModel.fromFirestore(data);
         await _firestore.collection('users').doc(uid).update({
-
-        // Update last login
           'lastLogin': FieldValue.serverTimestamp(),
         });
       } else {
-        // Auto logout if user document doesn't exist
         await _auth.signOut();
         _user = null;
         notifyListeners();
@@ -110,7 +119,6 @@ class AuthService extends ChangeNotifier {
 
     try {
       final String pinToStore;
-      // Check kro Pin already hash to ni ha
       if (pin.length == 64 && RegExp(r'^[a-f0-9]{64}$').hasMatch(pin)) {
         pinToStore = pin;
       } else {
@@ -175,7 +183,6 @@ class AuthService extends ChangeNotifier {
       final data = doc.data() as Map<String, dynamic>;
       final storedPin = data['pin'] ?? '';
 
-      // Check if stored PIN is already hashed
       final String enteredPinHash;
       if (storedPin.length == 64 && RegExp(r'^[a-f0-9]{64}$').hasMatch(storedPin)) {
         enteredPinHash = _hashPin(pin);
@@ -191,7 +198,6 @@ class AuthService extends ChangeNotifier {
 
   Future<UserModel?> signInWithEmailAndPassword(String email, String password) async {
     try {
-      // Sign in with Firebase Auth
       final UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email.trim(),
         password: password.trim(),
@@ -199,7 +205,6 @@ class AuthService extends ChangeNotifier {
 
       final userId = userCredential.user!.uid;
 
-      // Get user data from Firestore
       final doc = await _firestore.collection('users').doc(userId).get();
 
       if (!doc.exists) {
@@ -210,14 +215,12 @@ class AuthService extends ChangeNotifier {
       final data = doc.data() as Map<String, dynamic>;
       final userModel = UserModel.fromFirestore(data);
 
-      // Check if user is admin
       if (userModel.userType == 'admin') {
         _user = userModel;
         notifyListeners();
         return userModel;
       }
 
-      // For normal users, check approval status
       if (!userModel.isApproved || userModel.status != 'approved') {
         await _auth.signOut();
         throw Exception('Your account is pending admin approval. You will receive an email when approved.');
@@ -225,11 +228,9 @@ class AuthService extends ChangeNotifier {
 
       _user = userModel;
 
-      // Update last login
       await _firestore.collection('users').doc(userId).update({
         'lastLogin': FieldValue.serverTimestamp(),
       });
-
       notifyListeners();
       return userModel;
     } on FirebaseAuthException catch (e) {
@@ -243,7 +244,6 @@ class AuthService extends ChangeNotifier {
   }
 
 
-  // Check if current user is admin
   Future<bool> isAdmin() async {
     try {
       final user = _auth.currentUser;
@@ -259,7 +259,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Get user by ID (for admin panel)
   Future<UserModel?> getUserById(String userId) async {
     try {
       final doc = await _firestore.collection('users').doc(userId).get();
@@ -273,7 +272,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Get all pending users (for admin panel)
   Future<List<UserModel>> getPendingUsers() async {
     try {
       final query = await _firestore
@@ -292,7 +290,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Update user status (for admin panel)
   Future<void> updateUserStatus({
     required String userId,
     required String status,
@@ -305,12 +302,10 @@ class AuthService extends ChangeNotifier {
         'isActive': isApproved,
       });
 
-      // Get user email for notification
       final userDoc = await _firestore.collection('users').doc(userId).get();
       final userData = userDoc.data() as Map<String, dynamic>;
       final userEmail = userData['email'];
 
-      // Send approval email notification
       final userName = '${userData['firstName']} ${userData['lastName']}';
 
       debugPrint('User status updated to: $status');
@@ -329,6 +324,7 @@ class AuthService extends ChangeNotifier {
     try {
       await _auth.signOut();
       _user = null;
+      _pinSessionUnlocked = false;
       notifyListeners();
     } catch (e) {
       debugPrint('Sign out error: $e');
@@ -336,7 +332,6 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Update user profile
   Future<void> updateProfile({
     String? firstName,
     String? lastName,
@@ -363,7 +358,6 @@ class AuthService extends ChangeNotifier {
 
       await _firestore.collection('users').doc(user.uid).update(updates);
 
-      // Reload user data
       await _loadUserData(user.uid);
       debugPrint('Profile updated');
     } catch (e) {
@@ -372,12 +366,10 @@ class AuthService extends ChangeNotifier {
     }
   }
 
-  // Change PIN
   Future<void> changePin(String oldPin, String newPin) async {
     try {
       final user = _auth.currentUser;
 
-      // Verify old PIN
       if (user == null) throw Exception('No user logged in');
       final isVerified = await verifyPin(oldPin);
       if (!isVerified) throw Exception('Old PIN is incorrect');

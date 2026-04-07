@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:app/services/auth_service.dart';
-import 'package:app/screens/home_screen.dart';
-import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/utils/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -58,14 +56,7 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
 
       if (isValid) {
         debugPrint('PIN verified successfully');
-        // pin sai ha to direct home pe bhej do
-        if (mounted) {
-          Navigator.pushAndRemoveUntil(
-            context,
-            MaterialPageRoute(builder: (context) => const HomeScreen()),
-                (route) => false,  // purani screens remove
-          );
-        }
+        authService.unlockPinSession();
       } else {
         debugPrint('Invalid PIN');
         // agar pin galat ha to clear krdo or error show hoga
@@ -105,12 +96,10 @@ class _PinAuthenticationScreenState extends State<PinAuthenticationScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: const [
-            // ''' ye line break k leye hota ha " es me ap line break ni kr skty hain
             Text(
-              '''If you've forgotten your PIN, please logout and contact the administrator.
-They will securely reset it for you.''',
+              'Forgot your PIN? Log out and ask your admin to reset it for you.',
             ),
-            SizedBox(height: 15),
+            SizedBox(height: 12),
           ],
         ),
         actions: [
@@ -144,14 +133,6 @@ They will securely reset it for you.''',
       });
 
       await authService.signOut();
-// logout k baad direct login screen
-      if (mounted) {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const LoginScreen()),
-              (route) => false,
-        );
-      }
     } catch (e) {
       // agar logout fail ho jaye
       debugPrint(' Logout failed: $e');
@@ -346,7 +327,6 @@ They will securely reset it for you.''',
                         color: AppColors.primaryColor,
                         fontSize: 16,
                       ),
-                  // Back to Login Button
                     ),
                   ),
 

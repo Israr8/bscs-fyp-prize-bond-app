@@ -5,8 +5,9 @@ import 'package:app/utils/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:app/services/email_service.dart';
 import 'package:provider/provider.dart';
-import '../../services/auth_service.dart';
-import 'login_screen.dart';
+import 'package:app/services/auth_service.dart';
+import 'package:app/screens/admin/upload_draw_screen.dart';
+import 'package:app/screens/admin/admin_draws_list_screen.dart';
 
 class AdminPanelScreen extends StatefulWidget {
   const AdminPanelScreen({super.key});
@@ -79,7 +80,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
       print('User status updated in Firebase');
 
-      // Email sending
       bool emailSent = false;
       // status k hisaab se email bhejna
       if (status == 'approved') {
@@ -159,27 +159,33 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         ],
       ),
     );
-        // Get user data
 
     if (shouldReset == true) {
       try {
         final userDoc = await _firestore.collection('users').doc(userId).get();
-        final userData = userDoc.data() as Map<String, dynamic>;
-        // Reset PIN in Firestore
-        final userEmail = userData['email'];
-        final userName = '${userData['firstName']} ${userData['lastName']}';
-
-        const defaultPinHash = '9af15b336e6a961992b6c68d6e0b7cbb3c8c9e3c5f4d3b5f0e6d8e9a7b6c5d4';
-        // firestore me pin update kar rahe hain
+        if (!userDoc.exists) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('User not found'), backgroundColor: Colors.red),
+          );
+          return;
+        }
+        final userData = userDoc.data() as Map<String, dynamic>? ?? {};
+        final userEmail = userData['email']?.toString();
+        final userName = userData['firstName'] != null || userData['lastName'] != null
+            ? '${userData['firstName'] ?? ''} ${userData['lastName'] ?? ''}'.trim()
+            : (userData['name']?.toString() ?? 'User');
+        final defaultPinHash = AuthService.getDefaultPinHash();
         await _firestore.collection('users').doc(userId).update({
-        // Send PIN reset email
           'pin': defaultPinHash,
         });
 
-        final emailSent = await EmailService.sendPinResetEmail(
-          toEmail: userEmail,
-          userName: userName,
-        );
+        bool emailSent = false;
+        if (userEmail != null && userEmail.isNotEmpty) {
+          emailSent = await EmailService.sendPinResetEmail(
+            toEmail: userEmail,
+            userName: userName,
+          );
+        }
 
         if (emailSent) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -188,11 +194,18 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               backgroundColor: Colors.green,
             ),
           );
+        } else if (userEmail != null && userEmail.isNotEmpty) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('PIN reset to 0000 but email failed'),
+              backgroundColor: Colors.orange,
+            ),
+          );
         } else {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text(' PIN reset but email failed'),
-              backgroundColor: Colors.orange,
+              content: Text('PIN reset to 0000'),
+              backgroundColor: Colors.green,
             ),
           );
         }
@@ -213,7 +226,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
       margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       child: Padding(
         padding: const EdgeInsets.all(16),
-            // User Header with Status
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -260,8 +272,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
-            // User Details in Row
-
             const SizedBox(height: 12),
 
             Row(
@@ -305,8 +315,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
-            // Address
-
             const SizedBox(height: 8),
 
             Row(
@@ -325,8 +333,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
-            // Registration Date
-
             const SizedBox(height: 12),
 
             Row(
@@ -342,10 +348,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                 ),
               ],
             ),
-            // Action Buttons based on status
-
             const SizedBox(height: 16),
-              // Pending Users - Approve/Reject
 
             if (user.status == 'pending') ...[
               Row(
@@ -381,7 +384,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       label: const Text('Reject'),
                     ),
                   ),
-              // Approved Users - PIN Reset
                 ],
               ),
             ] else if (user.status == 'approved') ...[
@@ -418,7 +420,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
                       label: const Text('Deactivate'),
                     ),
                   ),
-              // Rejected Users - Approve
                 ],
               ),
             ] else if (user.status == 'rejected') ...[
@@ -476,7 +477,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
         return _pendingUsers;
     }
   }
-      // Show confirmation dialog
 // admin logout function
   Future<void> _logout() async {
     try {
@@ -497,12 +497,10 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           ],
         ),
       );
-      // Show loading indicator
 
       if (shouldLogout != true) return;
 
       setState(() {
-      // Get AuthService instance
         _isLoading = true;
       });
 
@@ -510,15 +508,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
       // auth service file me funtion add ha whan  se sign out kar rahe hain
       await authService.signOut();
-
-      // login screen pr wpis jaa rha ha
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginScreen()),
-            (route) => false,
-      );
-
-      print('Admin logged out successfully');
+      // AuthWrapper rebuilds to LoginScreen.
     } catch (e) {
       print('Logout error: $e');
       setState(() {
@@ -539,9 +529,34 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppColors.primaryColor,
+        backgroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.surface
+            : AppColors.primaryColor,
+        foregroundColor: Theme.of(context).brightness == Brightness.dark
+            ? Theme.of(context).colorScheme.onSurface
+            : Colors.white,
         title: const Text('Admin Panel'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.list),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AdminDrawsListScreen()),
+              );
+            },
+            tooltip: 'Uploaded Draws',
+          ),
+          IconButton(
+            icon: const Icon(Icons.upload_file),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UploadDrawScreen()),
+              );
+            },
+            tooltip: 'Add Draw (Upload TXT)',
+          ),
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadUsers,
@@ -553,12 +568,11 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             tooltip: 'Logout',
           ),
         ],
-          // Filter Tabs
       ),
       body: Column(
         children: [
           Container(
-            color: Colors.white,
+            color: Theme.of(context).colorScheme.surface,
             child: Row(
               children: [
                 _buildFilterTab('pending', 'Pending (${_pendingUsers.length})'),
@@ -568,8 +582,6 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               ],
             ),
           ),
-          // Users List
-
           const Divider(height: 1),
 
           Expanded(
@@ -580,7 +592,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
               child: Text(
                 'No users found',
                 style: GoogleFonts.inter(
-                  color: Colors.grey,
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
                   fontSize: 16,
                 ),
               ),
@@ -601,6 +613,9 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
   }
 
   Widget _buildFilterTab(String value, String label) {
+    final theme = Theme.of(context);
+    final primary = theme.colorScheme.primary;
+    final unselected = theme.colorScheme.onSurfaceVariant;
     return Expanded(
       child: InkWell(
         onTap: () {
@@ -613,9 +628,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
           decoration: BoxDecoration(
             border: Border(
               bottom: BorderSide(
-                color: _selectedFilter == value
-                    ? AppColors.primaryColor
-                    : Colors.transparent,
+                color: _selectedFilter == value ? primary : Colors.transparent,
                 width: 2,
               ),
             ),
@@ -624,9 +637,7 @@ class _AdminPanelScreenState extends State<AdminPanelScreen> {
             label,
             textAlign: TextAlign.center,
             style: GoogleFonts.inter(
-              color: _selectedFilter == value
-                  ? AppColors.primaryColor
-                  : Colors.grey,
+              color: _selectedFilter == value ? primary : unselected,
               fontWeight: _selectedFilter == value
                   ? FontWeight.w600
                   : FontWeight.normal,

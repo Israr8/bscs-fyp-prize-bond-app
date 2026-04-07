@@ -58,14 +58,12 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
     //  Load bonds first
     await _loadMyBonds();
 
-    // Setup draws listener after bonds are loaded
     _setupDrawsListener();
 
     // Step 3: Immediately check all draws once
     await _checkAllDrawsOnce();
   }
 
-// Check all draws once on startup
   Future<void> _checkAllDrawsOnce() async {
     try {
       debugPrint('Checking draws on startup...');
@@ -135,7 +133,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
       debugPrint('Third Prize Type: ${drawData['thirdPrize'].runtimeType}');
       debugPrint('=== END DEBUG ===');
 
-      // Check if we already processed this draw
       final prefs = await SharedPreferences.getInstance();
       final lastProcessedDraw = prefs.getString('last_processed_draw');
 
@@ -161,12 +158,10 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
 
         debugPrint('Checking bond: $bondNumber (Denomination: $bondDenomination)');
 
-        // Check if bond is in this draw
         bool isWinner = false;
         String prizeType = '';
         int prizeAmount = 0;
 
-        // Check first prize
         String firstPrizeStr = drawData['firstPrize']?.toString().trim() ?? '';
         firstPrizeStr = firstPrizeStr.replaceAll(',', '').replaceAll(' ', '');
 
@@ -177,7 +172,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
           debugPrint('Bond $bondNumber is FIRST PRIZE winner');
         }
 
-        // Check second prizes
         if (!isWinner) {
           final secondPrizeData = drawData['secondPrize'];
           if (secondPrizeData is List) {
@@ -206,7 +200,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
           }
         }
 
-        // Check third prizes
         if (!isWinner) {
           final thirdPrizeData = drawData['thirdPrize'];
           debugPrint('Checking third prize for $bondNumber');
@@ -272,7 +265,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
 
           debugPrint('Updating bond $bondNumber as winner: $prizeType');
 
-          // Update bond in Firestore
           await _firestore
               .collection('users')
               .doc(user.uid)
@@ -317,7 +309,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         }
       }
 
-      // Save that we processed this draw
       await prefs.setString('last_processed_draw', drawId);
 
       // Reload bonds to show updated status
@@ -338,7 +329,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
     }
   }
 
-// Helper function to get prize amount based on denomination
   int getPrizeAmount(String prizeType, String denomination) {
     int denom = int.tryParse(denomination) ?? 200;
 
@@ -585,7 +575,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         return;
       }
 
-      // Check if bond is winning
       bool isWinner = false;
       int prizeAmount = 0;
       String prizeType = '';
@@ -607,7 +596,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         drawDate = winningData['drawDate']?.toString() ?? '';
       }
 
-      // Save to Firestore
       await _firestore
           .collection('users')
           .doc(user.uid)
@@ -713,7 +701,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         final bondNumber = bond['bondNumber'];
         if (bondNumber == null) continue;
 
-        // Check bond in prize bonds collection
         final resultSnapshot = await _firestore
             .collection('prize_bonds')
             .where('bondNumber', isEqualTo: bondNumber.toString())
@@ -860,7 +847,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to scan screen
           Navigator.pushNamed(context, '/scan');
         },
         backgroundColor: AppColors.primaryColor,
@@ -1090,7 +1076,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: AppColors.primaryColor.withOpacity(0.1),
+            color: AppColors.primaryColor.withValues(alpha:0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(icon, size: 20, color: AppColors.primaryColor),

@@ -32,7 +32,7 @@ class BondItem extends StatelessWidget {
         leading: Container(
           padding: const EdgeInsets.all(10),
           decoration: BoxDecoration(
-            color: isWinner ? Colors.green.withOpacity(0.1) : AppColors.primaryColor.withOpacity(0.1),
+            color: isWinner ? Colors.green.withValues(alpha:0.1) : AppColors.primaryColor.withValues(alpha:0.1),
             shape: BoxShape.circle,
           ),
           child: Icon(
@@ -67,7 +67,7 @@ class BondItem extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: Colors.green.withOpacity(0.1),
+                  color: Colors.green.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: Colors.green),
                 ),

@@ -52,7 +52,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
 
 
-    // Validate password match
   Future<void> registerUser() async {
     if (!formKey.currentState!.validate()) return;
 
@@ -63,7 +62,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: Colors.red,
         ),
       );
-    // Validate PIN match
       return;
     }
 
@@ -74,7 +72,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           backgroundColor: Colors.red,
         ),
       );
-    // Validate PIN is 4 digits
       return;
     }
 
@@ -113,7 +110,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
           ),
           backgroundColor: Colors.green,
           duration: const Duration(seconds: 5),
-      // Navigate to login screen
         ),
       );
 
@@ -124,9 +120,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
       );
 
     } on FirebaseAuthException catch (e) {
-
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Registration failed'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } catch (e) {
-
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Registration failed: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -389,11 +397,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       return 'PINs do not match';
                     }
                     return null;
-                // Address Section
                   },
                 ),
 
-                // Address Field
                 _buildSectionHeader('Address'),
                 const SizedBox(height: 12),
 

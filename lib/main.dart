@@ -1,21 +1,28 @@
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 // Screens
 import 'package:app/screens/auth/login_screen.dart';
-import 'package:app/screens/auth/admin_panel_screen.dart';
+import 'package:app/screens/admin/admin_panel_screen.dart';
 import 'package:app/screens/auth/pin_authentication_screen.dart';
 import 'package:app/screens/auth/register_screen.dart';
+import 'package:app/screens/home_screen.dart';
 // Services
 import 'package:app/services/auth_service.dart';
 import 'package:app/services/notification_service.dart';
 // Theme
 import 'package:app/utils/theme.dart';
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
     await Firebase.initializeApp();
+    FirebaseFirestore.instance.settings = const Settings(
+      persistenceEnabled: true,
+      cacheSizeBytes: Settings.CACHE_SIZE_UNLIMITED,
+    );
     await NotificationService.initialize();
     print('Firebase init ok');
   } catch (e) {
@@ -36,9 +43,9 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Pakbond - Prize Bond Checker',
         debugShowCheckedModeBanner: false,
-        // routes for better navigation
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.system,
         home: const AuthWrapper(),
         routes: {
           '/login': (context) => const LoginScreen(),
@@ -54,14 +61,33 @@ class MyApp extends StatelessWidget {
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
+  static String _sessionKey(AsyncSnapshot<User?> snapshot, AuthService auth) {
+    final firebaseUid = snapshot.data?.uid ?? '';
+    final modelUid = auth.currentUser?.uid ?? '';
+    final pin = auth.isPinSessionUnlocked;
+    return '$firebaseUid|$modelUid|$pin';
+  }
+
   @override
   Widget build(BuildContext context) {
     final authService = context.watch<AuthService>();
-
-        // Handle connection errors
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
+        final shell = _buildAuthShell(context, snapshot, authService);
+        return KeyedSubtree(
+          key: ValueKey(_sessionKey(snapshot, authService)),
+          child: shell,
+        );
+      },
+    );
+  }
+
+  Widget _buildAuthShell(
+    BuildContext context,
+    AsyncSnapshot<User?> snapshot,
+    AuthService authService,
+  ) {
         if (snapshot.hasError) {
           return Scaffold(
             body: Center(
@@ -80,7 +106,6 @@ class AuthWrapper extends StatelessWidget {
                     textAlign: TextAlign.center,
                     style: const TextStyle(color: Colors.grey),
                   ),
-                      // Retry or go to login
                   const SizedBox(height: 20),
                   ElevatedButton(
                     onPressed: () {
@@ -90,9 +115,7 @@ class AuthWrapper extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-        //  Loading state
-          );
+            ) );
         }
 
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -107,10 +130,8 @@ class AuthWrapper extends StatelessWidget {
                 ],
               ),
             ),
-        //  No user logged in - Show Login Screen
           );
         }
-          // Small delay to ensure smooth transition
 
         if (!snapshot.hasData || snapshot.data == null) {
           Future.microtask(() {
@@ -118,10 +139,10 @@ class AuthWrapper extends StatelessWidget {
                authService.signOut();
             }
           });
-        // User logged in but data not loaded yet - show loading
           return const LoginScreen();
         }
 
+        // Firebase session exists; Firestore user may still be loading in AuthService.
         if (authService.currentUser == null) {
           return const Scaffold(
             body: Center(
@@ -130,29 +151,28 @@ class AuthWrapper extends StatelessWidget {
                 children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 20),
-                  Text('Loading user data...'),
+                  Text('Loading your account...'),
                 ],
               ),
             ),
           );
         }
-        //  Admin user - Go to Admin Panel
 
         final currentUser = authService.currentUser!;
 
         if (currentUser.userType == 'admin') {
-        //  Normal user - Check approval status
           return const AdminPanelScreen();
         }
 
         if (!currentUser.isApproved || currentUser.status != 'approved') {
-        // Approved normal user - PIN Authentication
           return _buildPendingApprovalScreen(context, authService);
         }
 
-        return const PinAuthenticationScreen();
-      },
-    );
+        if (!authService.isPinSessionUnlocked) {
+          return const PinAuthenticationScreen();
+        }
+
+        return const HomeScreen();
   }
 
   Widget _buildPendingApprovalScreen(BuildContext context, AuthService auth) {
@@ -164,12 +184,11 @@ class AuthWrapper extends StatelessWidget {
         foregroundColor: Colors.white,
       ),
       body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-              //  ICON SECTION - THIS WAS MISSING
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
+              child: Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
@@ -196,8 +215,8 @@ class AuthWrapper extends StatelessWidget {
               const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 20),
                 child: Text(
-                  'Your account is under review by the administrator. '
-                      'You will receive an email notification once your account is approved.',
+                  'Your account is still pending. '
+                      'We will email you when it is approved.',
                   textAlign: TextAlign.center,
                   style: TextStyle(
                     fontSize: 16,
@@ -205,13 +224,11 @@ class AuthWrapper extends StatelessWidget {
                     height: 1.5,
                   ),
                 ),
-              // BUTTON SECTION - THIS PART IS CORRECT
               ),
               const SizedBox(height: 40),
 
               SizedBox(
                 width: double.infinity,
-                    // Show a snackbar
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
@@ -219,14 +236,8 @@ class AuthWrapper extends StatelessWidget {
                       const SnackBar(
                         content: Text('Logging out...'),
                         duration: Duration(seconds: 1),
-                    // Small delay to show snackbar
                       ),
                     );
-
-
-                    // AuthWrapper will handle navigation automatically
-                    // Perform logout
-
                     await Future.delayed(const Duration(milliseconds: 500));
                     await auth.signOut();
                   },
