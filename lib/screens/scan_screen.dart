@@ -2,6 +2,7 @@
 import 'dart:io';
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -23,7 +24,7 @@ class _ScanScreenState extends State<ScanScreen> {
   final ImagePicker _picker = ImagePicker();
   final TextRecognizer _textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
 
-  // Camera related variables
+  // camera wali cheezein
   CameraController? _cameraController;
   List<CameraDescription>? _cameras;
   bool _isCameraInitialized = false;
@@ -31,7 +32,7 @@ class _ScanScreenState extends State<ScanScreen> {
   String _liveScanResult = '';
   bool _showScannerLine = true;
 
-  // Confetti variables
+  // jeet pe confetti
   late ConfettiController _confettiController;
   bool _showCelebration = false;
   bool _showSadEmoji = false;
@@ -46,7 +47,7 @@ class _ScanScreenState extends State<ScanScreen> {
   File? _selectedImage;
   List<String> _recentScans = [];
 
-  // List of denominations (same as draw results screen)
+  // denomination list draw screen jaisa
   final List<String> _denominations = [
     '100',
     '200',
@@ -110,6 +111,7 @@ class _ScanScreenState extends State<ScanScreen> {
           .limit(5)
           .get();
 
+      if (!mounted) return;
       setState(() {
         _recentScans = snapshot.docs
             .map((doc) => doc.data()['bondNumber'].toString())
@@ -170,9 +172,6 @@ class _ScanScreenState extends State<ScanScreen> {
       );
 
       if (image == null) {
-        setState(() {
-          _isScanning = false;
-        });
         return;
       }
 
@@ -182,13 +181,17 @@ class _ScanScreenState extends State<ScanScreen> {
       });
 
       await _performOCR(_selectedImage!);
-
     } catch (e) {
       setState(() {
-        _isScanning = false;
         _isProcessing = false;
         _errorMessage = 'Gallery scan failed: $e';
       });
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isScanning = false;
+        });
+      }
     }
   }
 
@@ -461,9 +464,11 @@ class _ScanScreenState extends State<ScanScreen> {
         _errorMessage = 'Error: ${e.toString()}';
       });
     } finally {
-      setState(() {
-        _isChecking = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isChecking = false;
+        });
+      }
     }
   }
 
@@ -620,7 +625,9 @@ class _ScanScreenState extends State<ScanScreen> {
               child: const Text('Cancel'),
             ),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                await Clipboard.setData(ClipboardData(text: message));
+                if (!context.mounted) return;
                 Navigator.pop(context);
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
@@ -701,7 +708,7 @@ class _ScanScreenState extends State<ScanScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // Live Camera View
+                // live camera view
                 if (_isLiveScanning && _isCameraInitialized)
                   _buildLiveCameraView(),
 
@@ -745,7 +752,7 @@ class _ScanScreenState extends State<ScanScreen> {
                 if (!_isLiveScanning)
                   Column(
                     children: [
-                      // Live Camera Button
+                      // live camera button
                       if (_isCameraInitialized)
                         SizedBox(
                           width: double.infinity,
@@ -775,23 +782,6 @@ class _ScanScreenState extends State<ScanScreen> {
                               ? const CircularProgressIndicator()
                               : const Text('Select from Gallery'),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(height: 12),
-
-                      // Manual Entry
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: _enterManually,
-                          icon: const Icon(Icons.keyboard),
-                          label: const Text('Enter Manually'),
-                          style: OutlinedButton.styleFrom(
-                            foregroundColor: Colors.orange,
-                            side: const BorderSide(color: Colors.orange),
                             padding: const EdgeInsets.symmetric(vertical: 16),
                           ),
                         ),
@@ -835,7 +825,7 @@ class _ScanScreenState extends State<ScanScreen> {
                     ],
                   ),
 
-                // Live Scan Status
+                // live scan status text
                 if (_isLiveScanning && _liveScanResult.isNotEmpty)
                   Container(
                     margin: const EdgeInsets.only(top: 16),
@@ -906,11 +896,15 @@ class _ScanScreenState extends State<ScanScreen> {
                       children: [
                         const Icon(Icons.money, color: Colors.green),
                         const SizedBox(width: 8),
-                        Text(
-                          'Selected: Rs. $_bondDenomination Prize Bond',
-                          style: const TextStyle(
-                            color: Colors.green,
-                            fontWeight: FontWeight.w600,
+                        Expanded(
+                          child: Text(
+                            'Selected: Rs. $_bondDenomination Prize Bond',
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.green,
+                              fontWeight: FontWeight.w600,
+                            ),
                           ),
                         ),
                       ],
@@ -939,23 +933,27 @@ class _ScanScreenState extends State<ScanScreen> {
                               ListTile(
                                 leading: const Icon(Icons.confirmation_number),
                                 title: const Text('Bond Number'),
-                                trailing: Text(
+                                subtitle: Text(
                                   _scannedBondNumber,
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                               const Divider(),
                               ListTile(
                                 leading: const Icon(Icons.money),
                                 title: const Text('Denomination'),
-                                trailing: Text(
+                                subtitle: Text(
                                   'Rs. $_bondDenomination',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w600,
                                   ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -1240,7 +1238,7 @@ class _ScanScreenState extends State<ScanScreen> {
     );
   }
 
-  // Helper functions
+  // chhoti helper functions
   Future<void> _performOCR(File imageFile) async {
     try {
       final inputImage = InputImage.fromFile(imageFile);
@@ -1262,80 +1260,5 @@ class _ScanScreenState extends State<ScanScreen> {
         _errorMessage = 'OCR failed: $e';
       });
     }
-  }
-
-  void _enterManually() {
-    TextEditingController controller = TextEditingController();
-
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Enter Bond Details'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              controller: controller,
-              decoration: const InputDecoration(
-                labelText: '6-digit Bond Number',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.confirmation_number),
-              ),
-              keyboardType: TextInputType.number,
-              maxLength: 6,
-            ),
-            const SizedBox(height: 16),
-            const Text('Select Denomination:'),
-            Wrap(
-              spacing: 8,
-              children: _denominations.map((denom) {
-                return FilterChip(
-                  label: Text('Rs. $denom'),
-                  selected: _bondDenomination == denom,
-                  onSelected: (selected) {
-                    setState(() {
-                      _bondDenomination = denom;
-                    });
-                    Navigator.pop(context);
-                    _showDenominationDialog().then((selectedDenom) {
-                      if (selectedDenom != null && controller.text.length == 6) {
-                        setState(() {
-                          _bondDenomination = selectedDenom;
-                          _scannedBondNumber = controller.text;
-                        });
-                        _checkBondInDraws();
-                      }
-                    });
-                  },
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              if (controller.text.length == 6) {
-                Navigator.pop(context);
-                _showDenominationDialog().then((denom) {
-                  if (denom != null) {
-                    setState(() {
-                      _scannedBondNumber = controller.text;
-                      _bondDenomination = denom;
-                    });
-                    _checkBondInDraws();
-                  }
-                });
-              }
-            },
-            child: const Text('Check'),
-          ),
-        ],
-      ),
-    );
   }
 }

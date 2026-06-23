@@ -30,6 +30,9 @@ class PostItemSheet extends StatefulWidget {
 }
 
 class _PostItemSheetState extends State<PostItemSheet> {
+  /// Prize bond number on draw / certificate — 6 digits.
+  static const int _bondNumberDigits = 6;
+
   final _formKey = GlobalKey<FormState>();
   final _bondNumberController = TextEditingController();
   final _priceController = TextEditingController();
@@ -80,6 +83,7 @@ class _PostItemSheetState extends State<PostItemSheet> {
   @override
   Widget build(BuildContext context) {
     final bottomInset = MediaQuery.of(context).viewInsets.bottom;
+    final cs = Theme.of(context).colorScheme;
 
     final h = MediaQuery.of(context).size.height;
 
@@ -89,10 +93,10 @@ class _PostItemSheetState extends State<PostItemSheet> {
         height: (h * 0.9).clamp(400.0, h * 0.95),
         child: Container(
           padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-            boxShadow: [
+          decoration: BoxDecoration(
+            color: cs.surface,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
+            boxShadow: const [
               BoxShadow(
                 color: Color(0x1A000000),
                 blurRadius: 24,
@@ -110,7 +114,7 @@ class _PostItemSheetState extends State<PostItemSheet> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey[300],
+                    color: cs.outlineVariant,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -128,7 +132,7 @@ class _PostItemSheetState extends State<PostItemSheet> {
                           style: GoogleFonts.inter(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
-                            color: AppColors.textColor,
+                            color: cs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -138,7 +142,7 @@ class _PostItemSheetState extends State<PostItemSheet> {
                               : 'Your number is shown to the buyer only after they confirm purchase',
                           style: GoogleFonts.inter(
                             fontSize: 13,
-                            color: Colors.grey[600],
+                            color: cs.onSurfaceVariant,
                             height: 1.3,
                           ),
                         ),
@@ -147,6 +151,7 @@ class _PostItemSheetState extends State<PostItemSheet> {
                   ),
                   IconButton(
                     icon: const Icon(Icons.close_rounded),
+                    color: cs.onSurface,
                     onPressed: () => Navigator.pop(context),
                   ),
                 ],
@@ -167,20 +172,26 @@ class _PostItemSheetState extends State<PostItemSheet> {
                             borderRadius: BorderRadius.circular(14),
                           ),
                           prefixIcon: const Icon(Icons.confirmation_number_outlined),
-                          hintText: '10-digit bond number',
+                          hintText: '6-digit bond number',
+                          helperText: widget.isEdit
+                              ? null
+                              : 'Prize bond number is exactly 6 digits (same as draw lists).',
                         ),
                         enabled: !widget.isEdit,
-                        maxLength: 10,
+                        maxLength: _bondNumberDigits,
                         keyboardType: TextInputType.number,
                         inputFormatters: [
                           FilteringTextInputFormatter.digitsOnly,
                         ],
                         validator: (value) {
+                          if (widget.isEdit) return null;
                           if (value == null || value.isEmpty) {
                             return 'Enter bond number';
                           }
-                          if (value.length < 10) {
-                            return 'Must be 10 digits';
+                          final digits =
+                              value.replaceAll(RegExp(r'\D'), '');
+                          if (digits.length != _bondNumberDigits) {
+                            return 'Bond number must be exactly $_bondNumberDigits digits';
                           }
                           return null;
                         },
@@ -341,8 +352,12 @@ class _PostItemSheetState extends State<PostItemSheet> {
     if (_formKey.currentState!.validate()) {
       final rawPhone = _phoneController.text.trim();
       final digitsOnly = rawPhone.replaceAll(RegExp(r'\D'), '');
+      final bondRaw = _bondNumberController.text.trim();
+      final bondDigits = widget.isEdit
+          ? bondRaw
+          : bondRaw.replaceAll(RegExp(r'\D'), '');
       widget.onPost(
-        _bondNumberController.text.trim(),
+        bondDigits,
         _selectedDenomination!,
         double.parse(_priceController.text.trim()),
         _descriptionController.text.trim(),

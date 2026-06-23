@@ -6,10 +6,10 @@ class UserModel {
   final String firstName;
   final String lastName;
   final String mobileNo;
-  final String pin; // Hashed 4-digit PIN
+  final String pin; // 4 digit pin hash
   final String address;
   final String city;
-  final String userType; // 'admin' or 'normal'
+  final String userType; // admin ya normal
   final String? photoUrl;
   final DateTime createdAt;
   final DateTime? lastLogin;
@@ -18,9 +18,9 @@ class UserModel {
   final int bondsCount;
   final List<String> savedBonds;
   final bool isPremium;
-  final bool isApproved; // New field for admin approval
+  final bool isApproved; // admin ne approve kiya?
   final bool isActive;
-  final String status; // 'pending', 'approved', 'rejected'
+  final String status; // pending approved rejected
 
   UserModel({
     required this.uid,

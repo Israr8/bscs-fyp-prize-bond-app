@@ -7,7 +7,7 @@ class MarketItem {
   final double askingPrice;
   final String sellerName;
   final String sellerId;
-  // Phone: visible to seller; buyer sees it after tapping Buy now or after sale completes.
+  // seller ka number; buyer ko buy now ke baad ya sale ke baad dikhta
   final String sellerPhone;
   final double sellerRating;
   final DateTime postedDate;
@@ -16,7 +16,7 @@ class MarketItem {
   final bool isSold;
   final String? buyerId;
   final String? buyerName;
-  // Filled when a buyer taps Buy now; cleared when the listing is sold.
+  // jab buyer buy now dabaye; sold hone pe khatam
   final String? pendingBuyerId;
   final String? pendingBuyerName;
   final DateTime? contactSharedAt;

@@ -79,6 +79,10 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final appBarTheme = Theme.of(context).appBarTheme;
+    final titleColor = appBarTheme.foregroundColor ??
+        Theme.of(context).colorScheme.onSurface;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(
@@ -86,7 +90,7 @@ class _HomeScreenState extends State<HomeScreen> {
           style: GoogleFonts.inter(
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: Theme.of(context).colorScheme.primary,
+            color: titleColor,
           ),
         ),
         centerTitle: true,
@@ -175,13 +179,13 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'Home',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.qr_code_scanner_outlined),
-            activeIcon: Icon(Icons.qr_code_scanner),
+            icon: Icon(Icons.document_scanner_outlined),
+            activeIcon: Icon(Icons.document_scanner),
             label: 'Scan',
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.attach_money_outlined),
-            activeIcon: Icon(Icons.attach_money),
+            icon: Icon(Icons.wallet_outlined),
+            activeIcon: Icon(Icons.wallet),
             label: 'My Bonds',
           ),
           BottomNavigationBarItem(
@@ -197,7 +201,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ],
       ),
     );
-//  Dynamic HomeDashboard CLASS
+// home dashboard widget yahan
   }
 }
 
@@ -212,7 +216,7 @@ class HomeDashboard extends StatelessWidget {
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
-          //  DYNAMIC User Info Card
+          // user info card
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -264,33 +268,16 @@ class HomeDashboard extends StatelessWidget {
                     CircleAvatar(
                       radius: 28,
                       backgroundColor: theme.colorScheme.primary,
-                      backgroundImage: snapshot.hasData &&
-                              snapshot.data!.exists &&
-                              (snapshot.data!.data() as Map<String, dynamic>?)?[
-                                      'profileImage'] !=
-                                  null &&
-                              (snapshot.data!.data()
-                                      as Map<String, dynamic>?)!['profileImage']
-                                  .toString()
-                                  .isNotEmpty
-                          ? NetworkImage(
-                              (snapshot.data!.data()
-                                      as Map<String, dynamic>?)?['profileImage']
-                                  as String,
-                            ) as ImageProvider
-                          : null,
-                      child: snapshot.hasData &&
-                              snapshot.data!.exists &&
-                              (snapshot.data!.data() as Map<String, dynamic>?)?[
-                                      'profileImage'] !=
-                                  null &&
-                              (snapshot.data!.data()
-                                      as Map<String, dynamic>?)!['profileImage']
-                                  .toString()
-                                  .isNotEmpty
-                          ? null
-                          : Icon(Icons.person,
-                              size: 28, color: theme.colorScheme.onPrimary),
+                      child: Text(
+                        userName.isNotEmpty
+                            ? userName[0].toUpperCase()
+                            : '?',
+                        style: TextStyle(
+                          fontSize: 22,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
@@ -316,7 +303,6 @@ class HomeDashboard extends StatelessWidget {
                             ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
-                          // Package Info
                           ),
                           const SizedBox(height: 8),
 
@@ -339,8 +325,7 @@ class HomeDashboard extends StatelessWidget {
               );
             },
           ),
-          // Features Grid (Unchanged)
-
+          // home pe feature cards
           const SizedBox(height: 24),
 
           GridView.count(
@@ -354,7 +339,7 @@ class HomeDashboard extends StatelessWidget {
             children: [
               CustomCard(
                 title: 'Quick Check',
-                icon: Icons.fact_check_outlined,
+                icon: Icons.search_rounded,
                 color: Colors.blue,
                 onTap: () => Navigator.push(
                   context,
@@ -365,7 +350,7 @@ class HomeDashboard extends StatelessWidget {
               ),
               CustomCard(
                 title: 'Quick Scan',
-                icon: Icons.qr_code_scanner_rounded,
+                icon: Icons.document_scanner_outlined,
                 color: Colors.green,
                 onTap: () => Navigator.push(
                   context,
@@ -376,7 +361,7 @@ class HomeDashboard extends StatelessWidget {
               ),
               CustomCard(
                 title: 'My Bonds',
-                icon: Icons.account_balance,
+                icon: Icons.wallet_outlined,
                 color: Colors.orange,
                 onTap: () => Navigator.push(
                   context,
@@ -386,20 +371,8 @@ class HomeDashboard extends StatelessWidget {
                 ),
               ),
               CustomCard(
-                title: 'Lockers',
-                icon: Icons.lock,
-                color: Colors.purple,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Lockers feature coming soon!'),
-                    ),
-                  );
-                },
-              ),
-              CustomCard(
                 title: 'Draw Lists',
-                icon: Icons.list_alt,
+                icon: Icons.menu_book_outlined,
                 color: Colors.red,
                 onTap: () {
                   Navigator.push(
@@ -412,7 +385,7 @@ class HomeDashboard extends StatelessWidget {
               ),
               CustomCard(
                 title: 'Marketplace',
-                icon: Icons.store,
+                icon: Icons.storefront_outlined,
                 color: Colors.teal,
                 onTap: () => Navigator.push(
                   context,
@@ -422,25 +395,17 @@ class HomeDashboard extends StatelessWidget {
                 ),
               ),
               CustomCard(
-                title: 'Missed Prizes',
-                icon: Icons.warning_amber,
-                color: Colors.amber,
-                onTap: () {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Checking for missed prizes...'),
-                    ),
-                  );
-                },
-              ),
-              CustomCard(
-                title: 'Results on Call',
-                icon: Icons.phone,
+                title: 'Results on call',
+                subtitle: 'Coming soon',
+                icon: Icons.headset_mic_outlined,
                 color: Colors.indigo,
                 onTap: () {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                      content: Text('Call service coming soon!'),
+                      content: Text(
+                        'Call-based result check (helpline / IVR style) is planned — not available yet.',
+                      ),
+                      behavior: SnackBarBehavior.floating,
                     ),
                   );
                 },
@@ -448,11 +413,9 @@ class HomeDashboard extends StatelessWidget {
             ],
           ),
 
-          const SizedBox(height: 45),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
         ],
       ),
-  // Package Info Widget
     );
   }
 

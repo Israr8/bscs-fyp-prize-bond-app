@@ -1,16 +1,11 @@
-// lib/screens/profile_screen.dart
+// lib/screens/profile_screen.dart — profile screen
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:provider/provider.dart';
 import 'package:app/utils/constants.dart';
-import 'package:app/screens/auth/change_password_screen.dart';
-import 'package:app/screens/linked_devices_screen.dart';
 import 'package:app/services/auth_service.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
-import 'dart:io';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -22,16 +17,12 @@ class ProfileScreen extends StatefulWidget {
 class _ProfileScreenState extends State<ProfileScreen> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseStorage _storage = FirebaseStorage.instance;
-  final ImagePicker _picker = ImagePicker();
 
   User? _user;
-  Map<String, dynamic> _userData = {};
-  bool _isLoading = true;
-  bool _isEditing = false;
-  bool _isUpdating = false;
-  File? _profileImage;
-  String? _profileImageUrl;
+  Map<String, dynamic> _map = {};
+  bool _busy = true;
+  bool _edit = false;
+  bool _wait = false;
 
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _phoneController = TextEditingController();
@@ -58,7 +49,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       setState(() {
-        _isLoading = true;
+        _busy = true;
       });
 
       _user = _auth.currentUser;
@@ -66,7 +57,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       if (_user == null) {
         if (mounted) {
           setState(() {
-            _isLoading = false;
+            _busy = false;
           });
         }
       return;
@@ -81,7 +72,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           'name': _user!.displayName ?? _user!.email?.split('@').first ?? 'User',
           'phone': '',
           'address': '',
-          'profileImage': '',
           'package': 'FREE',
           'expiry': '∞',
           'space': '0/1,000',
@@ -90,35 +80,33 @@ class _ProfileScreenState extends State<ProfileScreen> {
         });
 
         final newDoc = await _firestore.collection('users').doc(_user!.uid).get();
-        _userData = newDoc.data() as Map<String, dynamic>;
+        _map = newDoc.data() as Map<String, dynamic>;
       } else {
         final data = userDoc.data();
         if (data != null) {
-          _userData = Map<String, dynamic>.from(data);
+          _map = Map<String, dynamic>.from(data);
         } else {
-          _userData = {};
+          _map = {};
         }
       }
 
       if (!mounted) return;
 
-      _nameController.text = _userData['name']?.toString() ??
+      _nameController.text = _map['name']?.toString() ??
           _user!.displayName ??
           _user!.email?.split('@').first ??
           'User';
 
-      _phoneController.text = _userData['phone']?.toString() ?? '';
-      _addressController.text = _userData['address']?.toString() ?? '';
-      _profileImageUrl = _userData['profileImage']?.toString();
+      _phoneController.text = _map['phone']?.toString() ?? '';
+      _addressController.text = _map['address']?.toString() ?? '';
 
     } catch (e) {
       debugPrint('Error loading user data: $e');
 
-      _userData = {};
+      _map = {};
       _nameController.text = _user?.displayName ?? _user?.email?.split('@').first ?? 'User';
       _phoneController.text = '';
       _addressController.text = '';
-      _profileImageUrl = null;
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -131,93 +119,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } finally {
       if (mounted) {
         setState(() {
-          _isLoading = false;
+          _busy = false;
         });
       }
-    }
-  }
-
-  Future<void> _uploadProfileImage() async {
-    try {
-      final XFile? image = await _picker.pickImage(
-        source: ImageSource.gallery,
-        imageQuality: 80,
-        maxWidth: 800,
-        maxHeight: 800,
-      );
-
-      if (image == null) return;
-
-      if (!mounted) return;
-
-      setState(() {
-        _profileImage = File(image.path);
-        _isUpdating = true;
-      });
-
-      final user = _auth.currentUser;
-      if (user == null) {
-        if (mounted) {
-          setState(() => _isUpdating = false);
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('User not logged in'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-        return;
-      }
-
-      final fileName = 'profile_${user.uid}_${DateTime.now().millisecondsSinceEpoch}.jpg';
-      final reference = _storage.ref().child('profile_images/$fileName');
-
-      final uploadTask = reference.putFile(_profileImage!);
-
-      uploadTask.snapshotEvents.listen((snapshot) {
-        double progress = snapshot.bytesTransferred / snapshot.totalBytes;
-        debugPrint('Upload progress: $progress');
-      });
-
-      await uploadTask;
-
-      if (!mounted) return;
-
-      final downloadUrl = await reference.getDownloadURL();
-
-      await _firestore.collection('users').doc(user.uid).update({
-        'profileImage': downloadUrl,
-        'updatedAt': FieldValue.serverTimestamp(),
-      });
-
-      if (!mounted) return;
-
-      setState(() {
-        _profileImageUrl = downloadUrl;
-        _isUpdating = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profile picture updated!'),
-          backgroundColor: Colors.green,
-          duration: Duration(seconds: 2),
-        ),
-      );
-    } catch (e) {
-      debugPrint('Error uploading image: $e');
-      if (!mounted) return;
-
-      setState(() {
-        _isUpdating = false;
-      });
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to upload image: ${e.toString()}'),
-          backgroundColor: Colors.red,
-        ),
-      );
     }
   }
 
@@ -226,7 +130,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
     try {
       setState(() {
-        _isUpdating = true;
+        _wait = true;
       });
 
       final user = _auth.currentUser;
@@ -266,8 +170,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       setState(() {
-        _isEditing = false;
-        _isUpdating = false;
+        _edit = false;
+        _wait = false;
       });
 
       await _loadUserData();
@@ -283,7 +187,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
       setState(() {
-        _isUpdating = false;
+        _wait = false;
       });
     } catch (e) {
       debugPrint('Error updating profile: $e');
@@ -296,7 +200,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         ),
       );
       setState(() {
-        _isUpdating = false;
+        _wait = false;
       });
     }
   }
@@ -304,7 +208,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _logout() async {
     final authService = context.read<AuthService>();
     try {
-      // Drop any screens on top so logout actually shows login.
+      // logout se pehle jo screens upar khuli hon unko band kro ta login dikhe
       if (mounted) {
         final nav = Navigator.of(context, rootNavigator: true);
         if (nav.canPop()) {
@@ -349,7 +253,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(ctx);
-              _logout(); // Call logout with loading
+              _logout();
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
@@ -362,153 +266,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildProfileHeader() {
-    return Column(
-      children: [
-        Stack(
-          alignment: Alignment.bottomRight,
-          children: [
-            Container(
-              width: 120,
-              height: 120,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: AppColors.primaryColor,
-                  width: 3,
-                ),
-              ),
-              child: _isUpdating
-                  ? Center(
-                child: CircularProgressIndicator(
-                  color: AppColors.primaryColor,
-                ),
-              )
-                  : ClipOval(
-                child: _profileImageUrl != null && _profileImageUrl!.isNotEmpty
-                    ? Image.network(
-                  _profileImageUrl!,
-                  fit: BoxFit.cover,
-                  width: 120,
-                  height: 120,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return Center(
-                      child: CircularProgressIndicator(
-                        value: loadingProgress.expectedTotalBytes != null
-                            ? loadingProgress.cumulativeBytesLoaded /
-                            loadingProgress.expectedTotalBytes!
-                            : null,
-                      ),
-                    );
-                  },
-                  errorBuilder: (context, error, stackTrace) {
-                    return Container(
-                      color: Colors.grey[200],
-                      child: const Icon(
-                        Icons.person,
-                        size: 60,
-                        color: Colors.grey,
-                      ),
-                    );
-                  },
-                )
-                    : _profileImage != null
-                    ? Image.file(
-                  _profileImage!,
-                  fit: BoxFit.cover,
-                  width: 120,
-                  height: 120,
-                )
-                    : Container(
-                  color: Colors.grey[200],
-                  child: const Icon(
-                    Icons.person,
-                    size: 60,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            ),
-            if (!_isUpdating)
-              Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: AppColors.primaryColor,
-                  shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
-                ),
-                child: InkWell(
-                  onTap: _uploadProfileImage,
-                  child: const Icon(
-                    Icons.camera_alt,
-                    size: 20,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Text(
-          _nameController.text,
-          style: GoogleFonts.inter(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: Colors.black87,
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 4),
-        Text(
-          _user?.email ?? 'No email',
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            color: Colors.grey[600],
-          ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 8),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.fingerprint, size: 14, color: Colors.grey),
-            const SizedBox(width: 4),
-            Text(
-              _user?.uid.substring(0, 8) ?? 'N/A',
-              style: const TextStyle(
-                fontSize: 12,
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        ElevatedButton.icon(
-          onPressed: _isUpdating
-              ? null
-              : () {
-            setState(() {
-              _isEditing = !_isEditing;
-            });
-          },
-          icon: Icon(_isEditing ? Icons.close : Icons.edit),
-          label: Text(_isEditing ? 'Cancel Edit' : 'Edit Profile'),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: _isEditing ? Colors.grey : AppColors.primaryColor,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(30),
-            ),
-          ),
-        ),
-      ],
     );
   }
 
@@ -534,7 +291,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ],
             ),
             const SizedBox(height: 16),
-            if (_isEditing) ...[
+            if (_edit) ...[
               TextFormField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -542,7 +299,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.person),
                 ),
-                enabled: !_isUpdating,
+                enabled: !_wait,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -553,7 +310,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   prefixIcon: Icon(Icons.phone),
                 ),
                 keyboardType: TextInputType.phone,
-                enabled: !_isUpdating,
+                enabled: !_wait,
               ),
               const SizedBox(height: 12),
               TextFormField(
@@ -564,18 +321,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   prefixIcon: Icon(Icons.location_on),
                 ),
                 maxLines: 3,
-                enabled: !_isUpdating,
+                enabled: !_wait,
               ),
               const SizedBox(height: 20),
               SizedBox(
                 width: double.infinity,
                 height: 48,
                 child: ElevatedButton(
-                  onPressed: _isUpdating ? null : _updateProfile,
+                  onPressed: _wait ? null : _updateProfile,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.green,
                   ),
-                  child: _isUpdating
+                  child: _wait
                       ? const CircularProgressIndicator(color: Colors.white)
                       : const Text(
                     'Save Changes',
@@ -594,7 +351,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   'Address',
                   _addressController.text.isNotEmpty ? _addressController.text : 'Not set',
                   Icons.location_on),
-              _buildInfoRow('Member Since', _formatDate(_userData['createdAt']),
+              _buildInfoRow('Member Since', _formatDate(_map['createdAt']),
                   Icons.calendar_today),
             ],
           ],
@@ -640,118 +397,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  Widget _buildSettingsSection() {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.settings, color: AppColors.primaryColor),
-                const SizedBox(width: 12),
-                Text(
-                  'Settings',
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.blue[50],
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.lock, color: Colors.blue),
-              ),
-              title: const Text('Change Password'),
-              subtitle: const Text('Update your account password'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const ChangePasswordScreen(),
-                  ),
-                );
-              },
-            ),
-            const Divider(),
-            ListTile(
-              leading: Container(
-                padding: const EdgeInsets.all(8),
-                decoration: BoxDecoration(
-                  color: Colors.green[50],
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(Icons.devices, color: Colors.green),
-              ),
-              title: const Text('Linked Devices'),
-              subtitle: const Text('Manage your logged-in devices'),
-              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const LinkedDevicesScreen(),
-                  ),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHelpSection() {
-    return Card(
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Icon(Icons.help_outline, color: AppColors.primaryColor),
-                const SizedBox(width: 12),
-                Text(
-                  'Help & Support',
-                  style: GoogleFonts.inter(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            _buildHelpItem('Privacy Policy', Icons.privacy_tip),
-            const Divider(),
-            _buildHelpItem('Terms of Service', Icons.description),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHelpItem(String title, IconData icon) {
-    return ListTile(
-      leading: Icon(icon, color: Colors.grey[600]),
-      title: Text(title),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-      onTap: () {
-      },
-    );
-  }
-
   String _formatDate(dynamic date) {
     if (date == null) return 'Unknown';
     try {
@@ -771,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
+    if (_busy) {
       return Scaffold(
         body: Center(
           child: Column(
@@ -845,14 +490,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.all(20),
                 child: Column(
                   children: [
-                    _buildProfileHeader(),
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 16),
                     _buildAccountInfo(),
+                    const SizedBox(height: 12),
+                    if (!_edit)
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          onPressed: _wait
+                              ? null
+                              : () {
+                                  setState(() => _edit = true);
+                                },
+                          icon: const Icon(Icons.edit_outlined),
+                          label: const Text('Edit Profile'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primaryColor,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      )
+                    else
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton(
+                          onPressed: _wait
+                              ? null
+                              : () async {
+                                  setState(() => _edit = false);
+                                  await _loadUserData();
+                                },
+                          child: const Text('Cancel'),
+                        ),
+                      ),
                     const SizedBox(height: 16),
-                    _buildSettingsSection(),
-                    const SizedBox(height: 16),
-                    _buildHelpSection(),
-                    const SizedBox(height: 30),
                     SizedBox(
                       width: double.infinity,
                       child: OutlinedButton(

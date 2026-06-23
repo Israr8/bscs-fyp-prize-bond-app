@@ -9,6 +9,7 @@ import 'package:app/utils/constants.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:app/services/notification_service.dart';
+import 'package:app/screens/scan_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MyBondsScreen extends StatefulWidget {
@@ -44,7 +45,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
   void initState() {
     super.initState();
 
-    // Pehle bonds load karo, phir draws check karo
+    // Pehle bonds load hon gye -- phir draws check khon gye
     _initializeApp();
   }
 
@@ -60,7 +61,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
 
     _setupDrawsListener();
 
-    // Step 3: Immediately check all draws once
+    // Immediately check all draws once
     await _checkAllDrawsOnce();
   }
 
@@ -74,7 +75,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
           .get();
 
       if (snapshot.docs.isNotEmpty) {
-        debugPrint('🎯 Found ${snapshot.docs.length} draws to check');
+        debugPrint('Found ${snapshot.docs.length} draws to check');
 
         for (final draw in snapshot.docs) {
           await _checkForNewDrawResults(draw);
@@ -89,7 +90,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
     // Cancel previous subscription if exists
     _drawsSubscription?.cancel();
 
-    debugPrint('🔔 Setting up draws listener with ${_myBonds.length} bonds loaded');
+    debugPrint('Setting up draws listener with ${_myBonds.length} bonds loaded');
 
     _drawsSubscription = _firestore
         .collection('draws')
@@ -97,7 +98,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         .snapshots()
         .listen((snapshot) async {
       if (snapshot.docs.isNotEmpty) {
-        debugPrint('🎯 ${snapshot.docs.length} draws found for checking');
+        debugPrint(' ${snapshot.docs.length} draws found for checking');
 
         // bonds load honay do
         if (_myBonds.isEmpty) {
@@ -759,33 +760,6 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
     }
   }
 
-  void _exportBonds() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Export Bonds'),
-        content: const Text('Export all bonds to CSV/Excel format?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Export feature coming soon'),
-                ),
-              );
-            },
-            child: const Text('Export'),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final filteredBonds = _getFilteredBonds();
@@ -802,9 +776,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
           if (_myBonds.isNotEmpty)
             PopupMenuButton<String>(
               onSelected: (value) {
-                if (value == 'export') {
-                  _exportBonds();
-                } else if (value == 'check_all') {
+                if (value == 'check_all') {
                   _checkAllBonds();
                 } else if (value == 'refresh') {
                   _loadMyBonds();
@@ -831,23 +803,18 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
                     ],
                   ),
                 ),
-                const PopupMenuItem(
-                  value: 'export',
-                  child: Row(
-                    children: [
-                      Icon(Icons.download, size: 20),
-                      SizedBox(width: 8),
-                      Text('Export Bonds'),
-                    ],
-                  ),
-                ),
               ],
             ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/scan');
+          Navigator.push(
+            context,
+            MaterialPageRoute<void>(
+              builder: (context) => const ScanScreen(),
+            ),
+          );
         },
         backgroundColor: AppColors.primaryColor,
         child: const Icon(Icons.qr_code_scanner),
@@ -1123,7 +1090,7 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const Icon(
-            Icons.attach_money_outlined,
+            Icons.wallet_outlined,
             size: 80,
             color: Colors.grey,
           ),
@@ -1153,9 +1120,14 @@ class _MyBondsScreenState extends State<MyBondsScreen> {
               const SizedBox(height: 12),
               ElevatedButton.icon(
                 onPressed: () {
-                  Navigator.pushNamed(context, '/scan');
+                  Navigator.push<void>(
+                    context,
+                    MaterialPageRoute<void>(
+                      builder: (context) => const ScanScreen(),
+                    ),
+                  );
                 },
-                icon: const Icon(Icons.qr_code_scanner),
+                icon: const Icon(Icons.document_scanner_outlined),
                 label: const Text('Scan Bond'),
               ),
             ],

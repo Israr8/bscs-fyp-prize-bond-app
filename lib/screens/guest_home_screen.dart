@@ -9,6 +9,113 @@ import 'package:app/screens/draw_lists_screen.dart';
 import 'package:app/screens/marketplace_screen.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+void _guestNavigateDrawResults(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (context) => const DrawResultsScreen(),
+    ),
+  );
+}
+
+void _guestNavigateScanPrompt(BuildContext context, String appBarTitle) {
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (context) => Scaffold(
+        appBar: AppBar(title: Text(appBarTitle)),
+        body: const GuestScanRegisterPrompt(),
+      ),
+    ),
+  );
+}
+
+void _guestNavigateMarketplace(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (context) => const MarketplaceScreen(),
+    ),
+  );
+}
+
+void _guestNavigateDrawLists(BuildContext context) {
+  Navigator.push(
+    context,
+    MaterialPageRoute<void>(
+      builder: (context) => const DrawListsScreen(),
+    ),
+  );
+}
+
+Widget _guestSectionTitle(String title, {Color? titleColor}) {
+  return Text(
+    title,
+    style: GoogleFonts.inter(
+      fontSize: 18,
+      fontWeight: FontWeight.w600,
+      color: titleColor,
+    ),
+  );
+}
+
+Widget _guestFeatureGrid(List<Widget> children) {
+  return GridView.count(
+    shrinkWrap: true,
+    physics: const NeverScrollableScrollPhysics(),
+    crossAxisCount: 2,
+    crossAxisSpacing: 12,
+    mainAxisSpacing: 12,
+    childAspectRatio: 1.2,
+    children: children,
+  );
+}
+
+/// Shared info banner for guest dashboard + guest marketplace.
+class _GuestNoticeStrip extends StatelessWidget {
+  const _GuestNoticeStrip({
+    required this.backgroundColor,
+    required this.borderColor,
+    required this.icon,
+    required this.iconColor,
+    required this.child,
+    this.trailing,
+    this.borderRadius = const BorderRadius.all(Radius.circular(12)),
+  });
+
+  final Color backgroundColor;
+  final Color borderColor;
+  final IconData icon;
+  final Color iconColor;
+  final Widget child;
+  final Widget? trailing;
+  final BorderRadius borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: backgroundColor,
+        borderRadius: borderRadius,
+        border: Border.all(color: borderColor),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, color: iconColor),
+          const SizedBox(width: 12),
+          Expanded(child: child),
+          if (trailing != null) ...[
+            const SizedBox(width: 8),
+            trailing!,
+          ],
+        ],
+      ),
+    );
+  }
+}
+
 class GuestHomeScreen extends StatefulWidget {
   const GuestHomeScreen({super.key});
 
@@ -20,11 +127,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _guestScreens = [
-    GuestDashboardScreen(),
-    const DrawResultsScreen(), // Search tab = Quick Search
+    const GuestDashboardScreen(),
+    const DrawResultsScreen(), // search / quick check wala tab
     const GuestScanRegisterPrompt(),
-    GuestMarketplaceScreen(),
-    GuestProfileScreen(),
+    const GuestMarketplaceScreen(),
+    const GuestProfileScreen(),
   ];
 
   @override
@@ -50,7 +157,7 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
               ],
             ),
       body: _guestScreens[_currentIndex],
-      // Search tab (index 1) shows DrawResultsScreen with its own AppBar
+      // index 1 pe draw results ka apna app bar hai
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         type: BottomNavigationBarType.fixed,
@@ -93,11 +200,11 @@ class _GuestHomeScreenState extends State<GuestHomeScreen> {
   }
 }
 
-// ===========================
-// Guest Dashboard Screen
-// ===========================
+// --- guest home dashboard ---
 
 class GuestDashboardScreen extends StatelessWidget {
+  const GuestDashboardScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -105,184 +212,84 @@ class GuestDashboardScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Guest Banner
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.blue[50],
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue[100]!),
-            ),
-            child: Row(
+          _GuestNoticeStrip(
+            backgroundColor: Colors.blue[50]!,
+            borderColor: Colors.blue[100]!,
+            icon: Icons.info_outline,
+            iconColor: Colors.blue,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.info_outline, color: Colors.blue),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Guest Mode',
-                        style: GoogleFonts.inter(
-                          fontWeight: FontWeight.w600,
-                          color: Colors.blue[800],
-                        ),
-                      ),
-                      Text(
-                        'Some features are limited. Register to unlock all features.',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                    ],
+                Text(
+                  'Guest Mode',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w600,
+                    color: Colors.blue[800],
                   ),
                 ),
-                ElevatedButton(
-                  onPressed: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const RegisterScreen(),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primaryColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                Text(
+                  'Some features are limited. Register to unlock all features.',
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: Colors.grey[600],
                   ),
-                  child: const Text('Register'),
                 ),
               ],
             ),
-          ),
-
-          const SizedBox(height: 24),
-
-          // Quick Check & Quick Scan (same as logged-in user)
-          Text(
-            'Quick Search',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+            trailing: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute<void>(
+                    builder: (context) => const RegisterScreen(),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primaryColor,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              child: const Text('Register'),
             ),
           ),
-          const SizedBox(height: 16),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-            children: [
-              CustomCard(
-                title: 'Quick Check',
-                icon: Icons.fact_check_outlined,
-                color: Colors.blue,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DrawResultsScreen(),
-                  ),
-                ),
-              ),
-              CustomCard(
-                title: 'Quick Scan',
-                icon: Icons.qr_code_scanner_rounded,
-                color: Colors.green,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Scaffold(
-                      appBar: AppBar(title: const Text('Scan')),
-                      body: const GuestScanRegisterPrompt(),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
 
           const SizedBox(height: 24),
 
-          // Available Features (all tappable, same screens as logged-in)
-          Text(
-            'Available Features',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
+          // ek grid: pehle do grids same actions repeat kar rahe the
+          _guestSectionTitle('Explore as guest'),
+          const SizedBox(height: 16),
+          _guestFeatureGrid([
+            CustomCard(
+              title: 'Check results',
+              icon: Icons.search,
+              color: Colors.blue,
+              onTap: () => _guestNavigateDrawResults(context),
             ),
-          ),
-          const SizedBox(height: 16),
-          GridView.count(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisCount: 2,
-            crossAxisSpacing: 12,
-            mainAxisSpacing: 12,
-            childAspectRatio: 1.2,
-            children: [
-              CustomCard(
-                title: 'Scan Bonds',
-                icon: Icons.confirmation_number,
-                color: Colors.green,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Scaffold(
-                      appBar: AppBar(title: const Text('Scan Bonds')),
-                      body: const GuestScanRegisterPrompt(),
-                    ),
-                  ),
-                ),
-              ),
-              CustomCard(
-                title: 'Search Results',
-                icon: Icons.search,
-                color: Colors.blue,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DrawResultsScreen(),
-                  ),
-                ),
-              ),
-              CustomCard(
-                title: 'View Marketplace',
-                icon: Icons.store,
-                color: Colors.orange,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const MarketplaceScreen(),
-                  ),
-                ),
-              ),
-              CustomCard(
-                title: 'Draw Lists',
-                icon: Icons.list_alt,
-                color: Colors.purple,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const DrawListsScreen(),
-                  ),
-                ),
-              ),
-            ],
-          ),
+            CustomCard(
+              title: 'Scan bonds',
+              icon: Icons.qr_code_scanner_rounded,
+              color: Colors.green,
+              onTap: () => _guestNavigateScanPrompt(context, 'Scan bonds'),
+            ),
+            CustomCard(
+              title: 'Marketplace',
+              icon: Icons.store,
+              color: Colors.orange,
+              onTap: () => _guestNavigateMarketplace(context),
+            ),
+            CustomCard(
+              title: 'Draw lists',
+              icon: Icons.list_alt,
+              color: Colors.purple,
+              onTap: () => _guestNavigateDrawLists(context),
+            ),
+          ]),
 
           const SizedBox(height: 24),
 
-          // Limited Features
-          Text(
+          _guestSectionTitle(
             'Limited Features (Requires Registration)',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey,
-            ),
+            titleColor: Colors.grey,
           ),
 
           const SizedBox(height: 16),
@@ -298,14 +305,7 @@ class GuestDashboardScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Recent Draws
-          Text(
-            'Recent Draw Results',
-            style: GoogleFonts.inter(
-              fontSize: 18,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          _guestSectionTitle('Recent Draw Results'),
 
           const SizedBox(height: 16),
 
@@ -396,9 +396,7 @@ class GuestDashboardScreen extends StatelessWidget {
   }
 }
 
-// ===========================
-// Guest Scan tab: register prompt (no bond input)
-// ===========================
+// --- guest scan: register bolta ---
 
 class GuestScanRegisterPrompt extends StatelessWidget {
   const GuestScanRegisterPrompt({super.key});
@@ -463,11 +461,9 @@ class GuestScanRegisterPrompt extends StatelessWidget {
   }
 }
 
-// (GuestScanScreen removed – guest sees only GuestScanRegisterPrompt)
+// guest ko seedha register prompt
 
-// ===========================
-// Guest Marketplace Screen (Updated with real listings)
-// ===========================
+// --- guest marketplace ---
 
 class GuestMarketplaceScreen extends StatelessWidget {
   const GuestMarketplaceScreen({super.key});
@@ -477,30 +473,21 @@ class GuestMarketplaceScreen extends StatelessWidget {
     return Scaffold(
       body: Column(
         children: [
-          // Marketplace access info
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.orange[50],
-              border: Border.all(color: Colors.orange[100]!),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.info_outline, color: Colors.orange),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Guest users can view bonds in marketplace but cannot buy/sell. Register to participate.',
-                    style: GoogleFonts.inter(
-                      color: Colors.grey[700],
-                    ),
-                  ),
-                ),
-              ],
+          _GuestNoticeStrip(
+            backgroundColor: Colors.orange[50]!,
+            borderColor: Colors.orange[100]!,
+            icon: Icons.info_outline,
+            iconColor: Colors.orange,
+            borderRadius: BorderRadius.zero,
+            child: Text(
+              'Guest users can view bonds in marketplace but cannot buy/sell. Register to participate.',
+              style: GoogleFonts.inter(
+                color: Colors.grey[700],
+              ),
             ),
           ),
 
-          // Marketplace Listings
+          // listings stream
           Expanded(
             child: StreamBuilder<QuerySnapshot>(
               stream: FirebaseFirestore.instance
@@ -678,7 +665,7 @@ class GuestMarketplaceScreen extends StatelessWidget {
 
             const SizedBox(height: 16),
 
-            // Guest mode restrictions
+            // register  box
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -749,18 +736,18 @@ class GuestMarketplaceScreen extends StatelessWidget {
   }
 }
 
-// ===========================
-// Guest Profile Screen
-// ===========================
+// --- guest profile ---
 
 class GuestProfileScreen extends StatelessWidget {
+  const GuestProfileScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Guest Profile Card
+          // profile card
           Card(
             elevation: 2,
             child: Padding(
@@ -794,7 +781,7 @@ class GuestProfileScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Action Buttons
+          // login register buttons
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -836,7 +823,7 @@ class GuestProfileScreen extends StatelessWidget {
 
           const SizedBox(height: 24),
 
-          // Features Comparison
+          // table feature compare
           Text(
             'Guest vs Registered User',
             style: GoogleFonts.inter(

@@ -36,7 +36,7 @@ class BondItem extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           child: Icon(
-            isWinner ? Icons.emoji_events : Icons.attach_money,
+            isWinner ? Icons.emoji_events : Icons.wallet_outlined,
             color: isWinner ? Colors.green : AppColors.primaryColor,
           ),
         ),

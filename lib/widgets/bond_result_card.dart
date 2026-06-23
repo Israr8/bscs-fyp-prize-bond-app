@@ -16,6 +16,7 @@ class BondResultCard extends StatelessWidget {
   final VoidCallback? onSave;
   final VoidCallback? onShare;
   final VoidCallback? onCheckAgain;
+  final String? city;
 
   const BondResultCard({
     super.key,
@@ -29,7 +30,8 @@ class BondResultCard extends StatelessWidget {
     this.showActions = true,
     this.onSave,
     this.onShare,
-    this.onCheckAgain, required String city,
+    this.onCheckAgain,
+    this.city,
   });
 
   @override
@@ -49,53 +51,63 @@ class BondResultCard extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with Status
+            // Header with status — left block must shrink so denomination never overflows.
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: isWinner ? Colors.green.withValues(alpha:0.1) : Colors.blue.withValues(alpha:0.1),
-                        borderRadius: BorderRadius.circular(20),
-                        border: Border.all(
-                          color: isWinner ? Colors.green : Colors.blue,
-                        ),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(
-                            isWinner ? Icons.emoji_events : Icons.confirmation_number,
-                            size: 16,
+                Expanded(
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: isWinner ? Colors.green.withValues(alpha:0.1) : Colors.blue.withValues(alpha:0.1),
+                          borderRadius: BorderRadius.circular(20),
+                          border: Border.all(
                             color: isWinner ? Colors.green : Colors.blue,
                           ),
-                          const SizedBox(width: 6),
-                          Text(
-                            isWinner ? 'WINNER' : 'CHECKED',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              isWinner ? Icons.emoji_events : Icons.confirmation_number,
+                              size: 16,
                               color: isWinner ? Colors.green : Colors.blue,
                             ),
+                            const SizedBox(width: 6),
+                            Text(
+                              isWinner ? 'WINNER' : 'CHECKED',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: isWinner ? Colors.green : Colors.blue,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Flexible(
+                        child: Text(
+                          denomination,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey[700],
                           ),
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      denomination,
-                      style: GoogleFonts.inter(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Text(
-                  '#${bondNumber.substring(0, 3)}***',
+                  bondNumber.length >= 3
+                      ? '#${bondNumber.substring(0, 3)}***'
+                      : '#$bondNumber',
                   style: GoogleFonts.inter(
                     fontSize: 14,
                     color: Colors.grey,
@@ -214,7 +226,7 @@ class BondResultCard extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             '$label:',
@@ -223,11 +235,17 @@ class BondResultCard extends StatelessWidget {
               color: Colors.grey[600],
             ),
           ),
-          Text(
-            value,
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              maxLines: 3,
+              overflow: TextOverflow.ellipsis,
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],

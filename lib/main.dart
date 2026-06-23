@@ -3,16 +3,16 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-// Screens
+// screens
 import 'package:app/screens/auth/login_screen.dart';
 import 'package:app/screens/admin/admin_panel_screen.dart';
 import 'package:app/screens/auth/pin_authentication_screen.dart';
 import 'package:app/screens/auth/register_screen.dart';
 import 'package:app/screens/home_screen.dart';
-// Services
+// services
 import 'package:app/services/auth_service.dart';
 import 'package:app/services/notification_service.dart';
-// Theme
+// theme
 import 'package:app/utils/theme.dart';
 
 Future<void> main() async {
@@ -61,11 +61,11 @@ class MyApp extends StatelessWidget {
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
 
-  static String _sessionKey(AsyncSnapshot<User?> snapshot, AuthService auth) {
-    final firebaseUid = snapshot.data?.uid ?? '';
-    final modelUid = auth.currentUser?.uid ?? '';
-    final pin = auth.isPinSessionUnlocked;
-    return '$firebaseUid|$modelUid|$pin';
+  static String _sessionKey(AsyncSnapshot<User?> snap, AuthService auth) {
+    final fb = snap.data?.uid ?? '';
+    final doc = auth.currentUser?.uid ?? '';
+    final pinOk = auth.isPinSessionUnlocked;
+    return '$fb|$doc|$pinOk';
   }
 
   @override
@@ -142,7 +142,7 @@ class AuthWrapper extends StatelessWidget {
           return const LoginScreen();
         }
 
-        // Firebase session exists; Firestore user may still be loading in AuthService.
+        // firebase login ha lekin firestore user doc abhi load ho raha AuthService me
         if (authService.currentUser == null) {
           return const Scaffold(
             body: Center(
@@ -158,13 +158,13 @@ class AuthWrapper extends StatelessWidget {
           );
         }
 
-        final currentUser = authService.currentUser!;
+        final user = authService.currentUser!;
 
-        if (currentUser.userType == 'admin') {
+        if (user.userType == 'admin') {
           return const AdminPanelScreen();
         }
 
-        if (!currentUser.isApproved || currentUser.status != 'approved') {
+        if (!user.isApproved || user.status != 'approved') {
           return _buildPendingApprovalScreen(context, authService);
         }
 

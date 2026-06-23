@@ -14,11 +14,9 @@ dependencies:
   firebase_auth:  ^4.17.0               #^4.15.0
   cloud_firestore:  ^4.16.0                #^4.15.0
   firebase_messaging: ^14.7.10
-  firebase_storage: ^11.6.5
   flutter_local_notifications: ^17.2.1
 
   # UI & Helpers
-  cupertino_icons: ^1.0.2
   image_picker: ^1.0.4
   google_mlkit_text_recognition: ^0.13.0
   camera: ^0.10.5+2
@@ -28,7 +26,7 @@ dependencies:
   shared_preferences: ^2.2.2
   provider: ^6.1.1
   google_fonts: ^6.1.0
-  device_info_plus: ^9.1.0
+  mailer: ^6.2.0
   # winner effect k leye
   confetti: ^0.7.0
   path_provider: ^2.1.0
@@ -39,7 +37,6 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
-  mailer: ^6.2.0
   flutter_launcher_icons: ^0.13.1
 
 # App icon: logo.png se generate hota hai. Run: dart run flutter_launcher_icons

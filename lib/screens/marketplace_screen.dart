@@ -117,20 +117,31 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
     showDialog<void>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Get seller contact'),
+      builder: (dialogContext) {
+        final dcs = Theme.of(dialogContext).colorScheme;
+        return AlertDialog(
+        title: Text(
+          'Get seller contact',
+          style: TextStyle(color: dcs.onSurface),
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Bond #${item.bondNumber} · ${item.denomination}'),
+            Text(
+              'Bond #${item.bondNumber} · ${item.denomination}',
+              style: TextStyle(color: dcs.onSurface, fontWeight: FontWeight.w600),
+            ),
             const SizedBox(height: 8),
-            Text('Price: Rs. ${item.askingPrice.toStringAsFixed(0)}'),
+            Text(
+              'Price: Rs. ${item.askingPrice.toStringAsFixed(0)}',
+              style: TextStyle(color: dcs.onSurface),
+            ),
             const SizedBox(height: 16),
             Text(
               'We will show the seller phone so you can call or text. '
               'The ad stays up until they mark it sold.',
-              style: GoogleFonts.inter(height: 1.35),
+              style: GoogleFonts.inter(height: 1.35, color: dcs.onSurfaceVariant),
             ),
           ],
         ),
@@ -162,11 +173,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: AppColors.primaryColor,
+              foregroundColor: Colors.white,
             ),
             child: const Text('Show number'),
           ),
         ],
-      ),
+        );
+      },
     );
   }
 
@@ -451,13 +464,20 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
+      builder: (ctx) {
+        final dcs = Theme.of(ctx).colorScheme;
+        return AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.phone_in_talk_rounded, color: Colors.green[700], size: 28),
+            Icon(Icons.phone_in_talk_rounded, color: dcs.secondary, size: 28),
             const SizedBox(width: 8),
-            const Expanded(child: Text('Seller contact')),
+            Expanded(
+              child: Text(
+                'Seller contact',
+                style: TextStyle(color: dcs.onSurface),
+              ),
+            ),
           ],
         ),
         content: Column(
@@ -467,11 +487,17 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             Text(
               'Call or message the seller to pay and collect the bond. '
               'The ad stays up until they mark it sold.',
-              style: GoogleFonts.inter(height: 1.4),
+              style: GoogleFonts.inter(height: 1.4, color: dcs.onSurfaceVariant),
             ),
             const SizedBox(height: 16),
             if (phone.isNotEmpty) ...[
-              Text('Seller contact', style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+              Text(
+                'Seller contact',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w600,
+                  color: dcs.onSurface,
+                ),
+              ),
               const SizedBox(height: 8),
               SelectableText(
                 phone,
@@ -479,6 +505,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   fontSize: 22,
                   fontWeight: FontWeight.w700,
                   letterSpacing: 0.5,
+                  color: dcs.onSurface,
                 ),
               ),
               const SizedBox(height: 12),
@@ -511,7 +538,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ] else
               Text(
                 'No contact number was saved on this listing. Please contact support.',
-                style: GoogleFonts.inter(color: Colors.grey[700]),
+                style: GoogleFonts.inter(color: dcs.onSurfaceVariant),
               ),
           ],
         ),
@@ -521,7 +548,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             child: const Text('OK'),
           ),
         ],
-      ),
+      );
+      },
     );
   }
 
@@ -560,23 +588,46 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     super.dispose();
   }
 
+  Color _listingPriceColor(BuildContext context) {
+    return Theme.of(context).brightness == Brightness.dark
+        ? const Color(0xFF81C784)
+        : const Color(0xFF1B5E20);
+  }
+
   @override
   Widget build(BuildContext context) {
+    final cs = Theme.of(context).colorScheme;
+    final appBarTheme = Theme.of(context).appBarTheme;
+    final appBarFg = appBarTheme.foregroundColor ?? cs.onSurface;
+    final lightAppBar = Theme.of(context).brightness == Brightness.light;
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
-        backgroundColor: const Color(0xFFF0F4F8),
+        backgroundColor: cs.surface,
+        // My Bonds jaisa: global AppBarTheme — light mein neela bar + safed text, dark mein surface bar
         appBar: AppBar(
-          elevation: 0,
-          backgroundColor: AppColors.primaryColor,
-          foregroundColor: Colors.white,
+          elevation: appBarTheme.elevation ?? 0,
+          scrolledUnderElevation: 0,
+          surfaceTintColor: Colors.transparent,
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Text('Marketplace', style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 20)),
+              Text(
+                'Marketplace',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 20,
+                  color: appBarFg,
+                ),
+              ),
               Text(
                 'Prize bonds - buy and sell',
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.white.withValues(alpha: 0.9)),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: appBarFg.withValues(alpha: 0.88),
+                ),
               ),
             ],
           ),
@@ -592,16 +643,17 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               Tab(icon: Icon(Icons.shopping_bag_outlined, size: 20), text: 'Browse'),
               Tab(icon: Icon(Icons.storefront_outlined, size: 20), text: 'My listings'),
             ],
-            labelColor: Colors.white,
-            unselectedLabelColor: Colors.white70,
-            indicatorColor: Colors.white,
+            labelColor: lightAppBar ? Colors.white : cs.primary,
+            unselectedLabelColor: lightAppBar ? Colors.white70 : cs.onSurfaceVariant,
+            indicatorColor: lightAppBar ? Colors.white : cs.primary,
+            dividerColor: lightAppBar ? Colors.white24 : cs.outlineVariant,
             indicatorWeight: 3,
             indicatorSize: TabBarIndicatorSize.tab,
           ),
         ),
         body: TabBarView(
           children: [
-            // Buy Tab - All available bonds
+            // browse tab — sab listings
             StreamBuilder<QuerySnapshot>(
               stream: _firestore
                   .collection('marketplace')
@@ -615,11 +667,15 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('Error: ${snapshot.error}'),
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    ),
                   );
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  final emptyCs = Theme.of(context).colorScheme;
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -627,21 +683,21 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         Icon(
                           Icons.store_mall_directory_outlined,
                           size: 80,
-                          color: Colors.grey[300],
+                          color: emptyCs.onSurfaceVariant.withValues(alpha: 0.35),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'No bonds available for sale',
                           style: GoogleFonts.inter(
                             fontSize: 18,
-                            color: Colors.grey,
+                            color: emptyCs.onSurfaceVariant,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
                           'Be the first to post a bond!',
                           style: GoogleFonts.inter(
-                            color: Colors.grey,
+                            color: emptyCs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -670,7 +726,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               },
             ),
 
-            // Sell Tab - User's listings
+            // meri listings tab
             StreamBuilder<QuerySnapshot>(
               stream: _auth.currentUser != null
                   ? _firestore
@@ -686,11 +742,15 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('Error: ${snapshot.error}'),
+                    child: Text(
+                      'Error: ${snapshot.error}',
+                      style: TextStyle(color: Theme.of(context).colorScheme.onSurface),
+                    ),
                   );
                 }
 
                 if (_auth.currentUser == null) {
+                  final loginCs = Theme.of(context).colorScheme;
                   return Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
@@ -698,14 +758,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                         Icon(
                           Icons.login,
                           size: 80,
-                          color: Colors.grey[300],
+                          color: loginCs.onSurfaceVariant.withValues(alpha: 0.35),
                         ),
                         const SizedBox(height: 16),
                         Text(
                           'Please login to view your listings',
                           style: GoogleFonts.inter(
                             fontSize: 18,
-                            color: Colors.grey,
+                            color: loginCs.onSurfaceVariant,
                           ),
                         ),
                       ],
@@ -714,6 +774,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 }
 
                 if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  final myCs = Theme.of(context).colorScheme;
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -724,36 +785,37 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                           style: GoogleFonts.inter(
                             fontSize: 20,
                             fontWeight: FontWeight.w700,
+                            color: myCs.onSurface,
                           ),
                         ),
                         const SizedBox(height: 20),
                         Container(
                           padding: const EdgeInsets.all(32),
                           decoration: BoxDecoration(
-                            color: Colors.grey[50],
+                            color: myCs.surfaceContainerHigh,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: Colors.grey[200]!),
+                            border: Border.all(color: myCs.outlineVariant),
                           ),
                           child: Column(
                             children: [
                               Icon(
                                 Icons.sell_outlined,
                                 size: 60,
-                                color: Colors.grey[400],
+                                color: myCs.onSurfaceVariant.withValues(alpha: 0.45),
                               ),
                               const SizedBox(height: 16),
                               Text(
                                 'No bonds listed for sale',
                                 style: GoogleFonts.inter(
                                   fontSize: 16,
-                                  color: Colors.grey,
+                                  color: myCs.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 8),
                               Text(
                                 'Post your bonds to start selling',
                                 style: GoogleFonts.inter(
-                                  color: Colors.grey,
+                                  color: myCs.onSurfaceVariant,
                                 ),
                               ),
                               const SizedBox(height: 20),
@@ -761,6 +823,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                                 onPressed: _postNewItem,
                                 style: ElevatedButton.styleFrom(
                                   backgroundColor: AppColors.primaryColor,
+                                  foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     horizontal: 32,
                                     vertical: 12,
@@ -803,13 +866,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   Widget _buildBrowseBanner() {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: AppColors.primaryColor.withValues(alpha: 0.15)),
           boxShadow: [
@@ -838,12 +902,20 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 children: [
                   Text(
                     'Peer-to-peer listings',
-                    style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 16),
+                    style: GoogleFonts.inter(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 16,
+                      color: cs.onSurface,
+                    ),
                   ),
                   const SizedBox(height: 6),
                   Text(
                     'Tap Buy now to see the seller phone number. The listing stays here until the seller marks it sold.',
-                    style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[700], height: 1.35),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: cs.onSurfaceVariant,
+                      height: 1.35,
+                    ),
                   ),
                 ],
               ),
@@ -855,15 +927,16 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   Widget _buildSellerBanner() {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         width: double.infinity,
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: cs.surfaceContainerHigh,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: Colors.grey.shade200),
+          border: Border.all(color: cs.outlineVariant),
         ),
         child: Row(
           children: [
@@ -872,7 +945,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             Expanded(
               child: Text(
                 'Add your phone when you create a listing. Buyers only see it after they tap Buy now on your listing.',
-                style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[800], height: 1.35),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: cs.onSurfaceVariant,
+                  height: 1.35,
+                ),
               ),
             ),
           ],
@@ -882,6 +959,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   Widget _buildContactRow(MarketItem item, {required bool isSellerView}) {
+    final cs = Theme.of(context).colorScheme;
     final show = _canShowSellerPhone(item) || isSellerView;
     final phone = item.sellerPhone.replaceAll(RegExp(r'\D'), '');
 
@@ -890,18 +968,18 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         margin: const EdgeInsets.only(top: 10),
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.orange[50],
+          color: cs.errorContainer.withValues(alpha: 0.35),
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.orange.shade100),
+          border: Border.all(color: cs.error.withValues(alpha: 0.35)),
         ),
         child: Row(
           children: [
-            Icon(Icons.warning_amber_rounded, size: 20, color: Colors.orange[800]),
+            Icon(Icons.warning_amber_rounded, size: 20, color: cs.error),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
                 'Add a contact number (tap Edit) so buyers can reach you.',
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[800]),
+                style: GoogleFonts.inter(fontSize: 12, color: cs.onSurface),
               ),
             ),
           ],
@@ -914,13 +992,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         margin: const EdgeInsets.only(top: 10),
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         decoration: BoxDecoration(
-          color: Colors.green[50],
+          //color: Colors.grey,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: Colors.green.shade100),
+          border: Border.all(color: cs.outlineVariant),
         ),
         child: Row(
           children: [
-            Icon(Icons.phone_in_talk_rounded, size: 20, color: Colors.green[800]),
+            Icon(Icons.phone_in_talk_rounded, size: 20, color: cs.secondary),
             const SizedBox(width: 8),
             Expanded(
               child: Column(
@@ -928,7 +1006,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 children: [
                   Text(
                     isSellerView ? 'Your contact' : 'Seller contact',
-                    style: GoogleFonts.inter(fontSize: 11, color: Colors.grey[700]),
+                    style: GoogleFonts.inter(fontSize: 11, color: cs.onSurfaceVariant),
                   ),
                   SelectableText(
                     phone,
@@ -936,6 +1014,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                       letterSpacing: 0.3,
+                      color: cs.onSurface,
                     ),
                   ),
                 ],
@@ -944,7 +1023,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             if (!isSellerView)
               IconButton(
                 onPressed: () => _launchDial(phone),
-                icon: const Icon(Icons.call),
+                icon: Icon(Icons.call, color: cs.primary),
                 tooltip: 'Call',
               ),
           ],
@@ -956,17 +1035,18 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
       margin: const EdgeInsets.only(top: 10),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: cs.surfaceContainerHighest,
         borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: cs.outlineVariant),
       ),
       child: Row(
         children: [
-          Icon(Icons.lock_outline_rounded, size: 18, color: Colors.grey[600]),
+          Icon(Icons.lock_outline_rounded, size: 18, color: cs.onSurfaceVariant),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               'Tap Buy now to see the seller phone number',
-              style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[700]),
+              style: GoogleFonts.inter(fontSize: 12, color: cs.onSurfaceVariant),
             ),
           ),
         ],
@@ -976,13 +1056,14 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
   Widget _buildMarketItem(MarketItem item) {
     final isMyItem = _auth.currentUser?.uid == item.sellerId;
+    final cs = Theme.of(context).colorScheme;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -1018,12 +1099,16 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                     decoration: BoxDecoration(
-                      color: Colors.blue[50],
+                      color: cs.primaryContainer,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       'Your listing',
-                      style: GoogleFonts.inter(color: Colors.blue[800], fontWeight: FontWeight.w600, fontSize: 12),
+                      style: GoogleFonts.inter(
+                        color: cs.onPrimaryContainer,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
               ],
@@ -1041,6 +1126,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 18,
                       fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
                     ),
                   ),
                 ),
@@ -1049,7 +1135,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 22,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1B5E20),
+                    color: _listingPriceColor(context),
                   ),
                 ),
               ],
@@ -1060,7 +1146,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               Text(
                 item.description,
                 style: GoogleFonts.inter(
-                  color: Colors.grey[700],
+                  color: cs.onSurfaceVariant,
                   height: 1.35,
                 ),
                 maxLines: 2,
@@ -1072,12 +1158,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
             Row(
               children: [
-                Icon(Icons.person_outline_rounded, size: 18, color: Colors.grey[600]),
+                Icon(Icons.person_outline_rounded, size: 18, color: cs.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     item.sellerName,
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[800]),
+                    style: GoogleFonts.inter(fontSize: 14, color: cs.onSurface),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1085,19 +1171,19 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 Icon(Icons.star_rounded, size: 18, color: Colors.amber[700]),
                 Text(
                   item.sellerRating.toStringAsFixed(1),
-                  style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[700]),
+                  style: GoogleFonts.inter(fontSize: 14, color: cs.onSurfaceVariant),
                 ),
               ],
             ),
             const SizedBox(height: 6),
             Row(
               children: [
-                Icon(Icons.place_outlined, size: 18, color: Colors.grey[600]),
+                Icon(Icons.place_outlined, size: 18, color: cs.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     item.location,
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[700]),
+                    style: GoogleFonts.inter(fontSize: 14, color: cs.onSurfaceVariant),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1113,7 +1199,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               'Posted ${_formatDate(item.postedDate)}',
               style: GoogleFonts.inter(
                 fontSize: 12,
-                color: Colors.grey[500],
+                color: cs.onSurfaceVariant,
               ),
             ),
 
@@ -1157,12 +1243,13 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
   }
 
   Widget _buildMyItem(MarketItem item) {
+    final cs = Theme.of(context).colorScheme;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: cs.surfaceContainerHigh,
         borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: Colors.grey.shade200),
+        border: Border.all(color: cs.outlineVariant),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.04),
@@ -1197,13 +1284,15 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: item.isSold ? Colors.green[50] : Colors.orange[50],
+                    color: item.isSold
+                        ? cs.secondaryContainer.withValues(alpha: 0.9)
+                        : cs.tertiaryContainer.withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     item.isSold ? 'SOLD' : 'LIVE',
                     style: GoogleFonts.inter(
-                      color: item.isSold ? Colors.green[800] : Colors.orange[900],
+                      color: item.isSold ? cs.onSecondaryContainer : cs.onTertiaryContainer,
                       fontWeight: FontWeight.w800,
                       fontSize: 11,
                     ),
@@ -1223,6 +1312,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                     style: GoogleFonts.inter(
                       fontSize: 17,
                       fontWeight: FontWeight.w700,
+                      color: cs.onSurface,
                     ),
                   ),
                 ),
@@ -1231,7 +1321,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 20,
                     fontWeight: FontWeight.w800,
-                    color: const Color(0xFF1B5E20),
+                    color: _listingPriceColor(context),
                   ),
                 ),
               ],
@@ -1241,7 +1331,7 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               const SizedBox(height: 8),
               Text(
                 item.description,
-                style: GoogleFonts.inter(color: Colors.grey[700], height: 1.3),
+                style: GoogleFonts.inter(color: cs.onSurfaceVariant, height: 1.3),
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -1251,12 +1341,12 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
             Row(
               children: [
-                const Icon(Icons.place_outlined, size: 18, color: Colors.grey),
+                Icon(Icons.place_outlined, size: 18, color: cs.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Expanded(
                   child: Text(
                     item.location,
-                    style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[800]),
+                    style: GoogleFonts.inter(fontSize: 14, color: cs.onSurfaceVariant),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
@@ -1268,11 +1358,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
 
             Row(
               children: [
-                const Icon(Icons.schedule, size: 16, color: Colors.grey),
+                Icon(Icons.schedule, size: 16, color: cs.onSurfaceVariant),
                 const SizedBox(width: 4),
                 Text(
                   _formatDate(item.postedDate),
-                  style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[600]),
+                  style: GoogleFonts.inter(fontSize: 13, color: cs.onSurfaceVariant),
                 ),
               ],
             ),
@@ -1287,21 +1377,21 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: cs.primaryContainer.withValues(alpha: 0.75),
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: Colors.blue.shade100),
+                  border: Border.all(color: cs.outlineVariant),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.person_search_rounded, size: 20, color: Colors.blue[800]),
+                    Icon(Icons.person_search_rounded, size: 20, color: cs.primary),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Buyer who requested contact: ${item.pendingBuyerName}',
                         style: GoogleFonts.inter(
                           fontSize: 13,
-                          color: Colors.blue[900],
+                          color: cs.onPrimaryContainer,
                           fontWeight: FontWeight.w600,
                           height: 1.3,
                         ),
@@ -1316,7 +1406,11 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               const SizedBox(height: 8),
               Text(
                 'Buyer: ${item.buyerName}',
-                style: GoogleFonts.inter(fontSize: 13, color: Colors.green[900], fontWeight: FontWeight.w600),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: cs.secondary,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ],
 
@@ -1359,18 +1453,18 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.green[50],
+                  color: cs.secondaryContainer.withValues(alpha: 0.85),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.green[100]!),
+                  border: Border.all(color: cs.outlineVariant),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.check_circle, color: Colors.green, size: 20),
+                    Icon(Icons.check_circle, color: cs.secondary, size: 20),
                     const SizedBox(width: 8),
                     Text(
                       'This bond has been sold',
                       style: GoogleFonts.inter(
-                        color: Colors.green,
+                        color: cs.onSecondaryContainer,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -1387,28 +1481,45 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     final isSeller = _auth.currentUser?.uid == item.sellerId;
     final showPhone = _canShowSellerPhone(item) || isSeller;
     final phone = item.sellerPhone.replaceAll(RegExp(r'\D'), '');
+    final cs = Theme.of(context).colorScheme;
 
     return AlertDialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      title: Text('Bond #${item.bondNumber}', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+      title: Text(
+        'Bond #${item.bondNumber}',
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.w700,
+          color: cs.onSurface,
+        ),
+      ),
       content: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildDetailRow('Denomination', item.denomination),
-            _buildDetailRow('Asking price', 'Rs. ${item.askingPrice.toStringAsFixed(0)}'),
-            _buildDetailRow('Seller', item.sellerName),
-            _buildDetailRow('Rating', '${item.sellerRating.toStringAsFixed(1)}/5'),
-            _buildDetailRow('Location', item.location),
-            _buildDetailRow('Posted', _formatDate(item.postedDate)),
+            _buildDetailRow(context, 'Denomination', item.denomination),
+            _buildDetailRow(context, 'Asking price', 'Rs. ${item.askingPrice.toStringAsFixed(0)}'),
+            _buildDetailRow(context, 'Seller', item.sellerName),
+            _buildDetailRow(context, 'Rating', '${item.sellerRating.toStringAsFixed(1)}/5'),
+            _buildDetailRow(context, 'Location', item.location),
+            _buildDetailRow(context, 'Posted', _formatDate(item.postedDate)),
             const SizedBox(height: 12),
             if (showPhone && phone.isNotEmpty) ...[
-              Text('Contact', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+              Text(
+                'Contact',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
               const SizedBox(height: 6),
               SelectableText(
                 phone,
-                style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.w700),
+                style: GoogleFonts.inter(
+                  fontSize: 18,
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -1434,17 +1545,21 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: cs.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: cs.outlineVariant),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.lock_outline, size: 18, color: Colors.grey[700]),
+                    Icon(Icons.lock_outline, size: 18, color: cs.onSurfaceVariant),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'Tap Buy now to see the seller phone number.',
-                        style: GoogleFonts.inter(fontSize: 13, color: Colors.grey[800]),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: cs.onSurfaceVariant,
+                        ),
                       ),
                     ),
                   ],
@@ -1453,9 +1568,21 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             ],
             if (item.description.isNotEmpty) ...[
               const SizedBox(height: 12),
-              Text('Description', style: GoogleFonts.inter(fontWeight: FontWeight.w700)),
+              Text(
+                'Description',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  color: cs.onSurface,
+                ),
+              ),
               const SizedBox(height: 4),
-              Text(item.description, style: GoogleFonts.inter(height: 1.35)),
+              Text(
+                item.description,
+                style: GoogleFonts.inter(
+                  height: 1.35,
+                  color: cs.onSurfaceVariant,
+                ),
+              ),
             ],
             const SizedBox(height: 16),
             if (!isSeller)
@@ -1485,7 +1612,8 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
     );
   }
 
-  Widget _buildDetailRow(String label, String value) {
+  Widget _buildDetailRow(BuildContext context, String label, String value) {
+    final cs = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
@@ -1495,10 +1623,18 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
             width: 120,
             child: Text(
               '$label:',
-              style: const TextStyle(fontWeight: FontWeight.w600),
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: cs.onSurfaceVariant,
+              ),
             ),
           ),
-          Expanded(child: Text(value)),
+          Expanded(
+            child: Text(
+              value,
+              style: TextStyle(color: cs.onSurface),
+            ),
+          ),
         ],
       ),
     );

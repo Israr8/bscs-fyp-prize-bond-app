@@ -13,9 +13,9 @@ class AuthService extends ChangeNotifier {
   UserModel? get currentUser => _user;
   Stream<User?> get userStream => _auth.authStateChanges();
 
-  bool _isRegistering = false;
+  bool _reg = false;
 
-  // PIN ok for this app session; cleared when user signs out.
+  // PIN sahi hone ke baad session unlock; logout pe wapas band
   bool _pinSessionUnlocked = false;
   bool get isPinSessionUnlocked => _pinSessionUnlocked;
 
@@ -41,7 +41,7 @@ class AuthService extends ChangeNotifier {
 
   AuthService() {
     _auth.authStateChanges().listen((User? user) async {
-      if (_isRegistering) return;
+      if (_reg) return;
 
       if (user != null) {
         try {
@@ -115,7 +115,7 @@ class AuthService extends ChangeNotifier {
     required String city,
     required String userType,
   }) async {
-    _isRegistering = true;
+    _reg = true;
 
     try {
       final String pinToStore;
@@ -168,7 +168,7 @@ class AuthService extends ChangeNotifier {
       } catch (_) {}
       rethrow;
     } finally {
-      _isRegistering = false;
+      _reg = false;
     }
   }
 

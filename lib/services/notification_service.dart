@@ -174,10 +174,10 @@ class NotificationService {
     return DateTime.now();
   }
 
-  // Call after login or when opening the notifications screen.
+  // login ke baad ya notification screen kholne pe inbox refresh
   static Future<void> refreshInbox() => _fetchNotifications();
 
-  // Adds a row under the buyer's notification inbox when a sale completes.
+  // marketplace sale complete hone pe buyer ke inbox me row
   static Future<bool> appendMarketplacePurchaseForBuyer({
     required String buyerUid,
     required String bondNumber,

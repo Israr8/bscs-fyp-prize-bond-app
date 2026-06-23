@@ -11,36 +11,33 @@ class LoginScreen extends StatefulWidget {
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
-// Stateful is leye use kiya kuon k loading aur password visibility handle karni hai updation honi hha na
-
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _userEmail = TextEditingController();
+  final _email = TextEditingController();
   final _passwordController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
-  bool _isLoading = false; //Login button pe spinner dikhane k leye
-  bool _obscurePassword = true; // Password initially hide karne k leye
+  bool _busy = false; // login button pe chakkar
+  bool _hidePass = true; // password chhupa ke rakho
 
   @override
   void dispose() {
-    // Controllers free karne k leye dispose
-    _userEmail.dispose();
+    // controllers band karte waqt
+    _email.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
-  // login_screen.dart me _login function update karein
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
-    setState(() => _isLoading = true);
+    setState(() => _busy = true);
 
     try {
       // Firebase se login karna
       final UserCredential userCredential = await FirebaseAuth.instance
           .signInWithEmailAndPassword(
-        email: _userEmail.text.trim(),
+        email: _email.text.trim(),
         password: _passwordController.text.trim(),
       );
 
@@ -103,7 +100,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } finally {
       if (mounted) {
-        setState(() => _isLoading = false);
+        setState(() => _busy = false);
       }
     }
   }
@@ -168,7 +165,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 const SizedBox(height: 40),
 
                 TextFormField(
-                  controller: _userEmail,
+                  controller: _email,
                   decoration: InputDecoration(
                     labelText: 'Email',
                     prefixIcon: const Icon(Icons.email_outlined),
@@ -198,13 +195,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     prefixIcon: const Icon(Icons.lock_outline),
                     suffixIcon: IconButton(
                       icon: Icon(
-                        _obscurePassword
+                        _hidePass
                             ? Icons.visibility_off
                             : Icons.visibility,
                       ),
                       onPressed: () {
                         setState(() {
-                          _obscurePassword = !_obscurePassword;
+                          _hidePass = !_hidePass;
                         });
                       },
                     ),
@@ -212,7 +209,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                  obscureText: _obscurePassword,
+                  obscureText: _hidePass,
                   validator: (value) {
                     if (value == null || value.isEmpty) {
                       return 'Please enter your password';
@@ -246,14 +243,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,  //screen ki jitni width hogi otnni ho jayegi
                   height: 56,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _login,
+                    onPressed: _busy ? null : _login,
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primaryColor,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: _isLoading
+                    child: _busy
                         ? const SizedBox(
                       width: 24,
                       height: 24,
