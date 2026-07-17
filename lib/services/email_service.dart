@@ -2,8 +2,9 @@ import 'package:mailer/mailer.dart';
 import 'package:mailer/smtp_server.dart';
 
 class EmailService {
-  static final String _username = 'pakbondapp@gmail.com';
-  static final String _password = 'bdlq qukv zazm lajz';
+  //add your email account 
+  static final String _username = '#############';
+  static final String _password = '###############';
   static final SmtpServer _smtpServer = gmail(_username, _password);
 
   static Future<bool> sendApprovalEmail({
