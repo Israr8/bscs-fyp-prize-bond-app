@@ -45,14 +45,3 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-# === Secrets / machine-specific (DO NOT push publicly) ===
-android/app/google-services.json
-android/local.properties
-android/key.properties
-*.jks
-*.keystore
-.env
-.env.*
-**/firebase_options.dart
-google-services.json
-GoogleService-Info.plist
